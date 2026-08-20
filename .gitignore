@@ -1,0 +1,7 @@
+# Git Ignore Rules
+RAW.xlsx
+*.log
+*.tmp
+inspect_*.ps1
+summarize_*.ps1
+check_*.ps1
