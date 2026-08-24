@@ -31,6 +31,7 @@ public class FastAggregator {
         public string Campaign { get; set; }
         public string AdGroupCat { get; set; }
         public string Keyword { get; set; }
+        public string SearchType { get; set; }
         public double Imp { get; set; }
         public double Clk { get; set; }
         public double CostVat { get; set; }
@@ -185,7 +186,8 @@ public class FastAggregator {
                                 string ctype = GetVal(rowCells, 4);
                                 string campaign = GetVal(rowCells, 5);
                                 string adGroupCat = GetVal(rowCells, 7); // 광고그룹 (H열)
-                                string kw = GetVal(rowCells, 8);
+                                string kw = GetVal(rowCells, 8); // 검색어 (I열)
+                                string searchType = GetVal(rowCells, 9); // 검색유형 (J열)
                                 double costVat = ParseD(GetVal(rowCells, 11));
                                 double costNoVat = ParseD(GetVal(rowCells, 12));
                                 double imp = ParseD(GetVal(rowCells, 13));
@@ -198,10 +200,10 @@ public class FastAggregator {
                                 }
 
                                 if (!string.IsNullOrEmpty(kw) && (imp > 0 || clk > 0 || costNoVat > 0 || conv > 0 || rev > 0)) {
-                                    string kKey = month + "|" + week + "|" + ctype + "|" + campaign + "|" + adGroupCat + "|" + kw;
+                                    string kKey = month + "|" + week + "|" + ctype + "|" + campaign + "|" + adGroupCat + "|" + kw + "|" + searchType;
                                     KwItem ki;
                                     if (!kwDict.TryGetValue(kKey, out ki)) {
-                                        ki = new KwItem { Month = month, Week = week, CampaignType = ctype, Campaign = campaign, AdGroupCat = adGroupCat, Keyword = kw };
+                                        ki = new KwItem { Month = month, Week = week, CampaignType = ctype, Campaign = campaign, AdGroupCat = adGroupCat, Keyword = kw, SearchType = searchType };
                                         kwDict[kKey] = ki;
                                     }
                                     ki.Imp += imp; ki.Clk += clk; ki.CostVat += costVat; ki.CostNoVat += costNoVat; ki.Conv += conv; ki.Revenue += rev;
@@ -314,7 +316,9 @@ public class FastAggregator {
                   .Append("\",\"ct\":\"").Append(Escape(kv.CampaignType))
                   .Append("\",\"c\":\"").Append(Escape(kv.Campaign))
                   .Append("\",\"ag\":\"").Append(Escape(kv.AdGroupCat))
-                  .Append("\",\"kw\":\"").Append(Escape(kv.Keyword)).Append("\"");
+                  .Append("\",\"kw\":\"").Append(Escape(kv.Keyword));
+                if (!string.IsNullOrEmpty(kv.SearchType)) sb.Append("\",\"st\":\"").Append(Escape(kv.SearchType));
+                sb.Append("\"");
                 if (kv.Imp > 0) sb.Append(",\"i\":").Append(Round(kv.Imp));
                 if (kv.Clk > 0) sb.Append(",\"cl\":").Append(Round(kv.Clk));
                 if (kv.CostVat > 0) sb.Append(",\"cvat\":").Append(Round(kv.CostVat));
@@ -400,7 +404,7 @@ $excelPath = Join-Path $PSScriptRoot "RAW2.xlsx"
 $jsonPath = Join-Path $PSScriptRoot "dashboard_data.json"
 $jsPath = Join-Path $PSScriptRoot "dashboard_data.js"
 
-Write-Host "Running zero-omitted compact generator for RAW2.xlsx..."
+Write-Host "Running zero-omitted compact generator for RAW2.xlsx with SearchType..."
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 [FastAggregator]::ProcessExcel($excelPath, $jsonPath, $jsPath)
 $sw.Stop()

@@ -427,6 +427,39 @@ body {
   gap: 8px;
 }
 
+.chip-collapsible {
+  max-height: 76px;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chip-collapsible.expanded {
+  max-height: 1200px;
+}
+
+.chip-toggle-btn {
+  margin-top: 10px;
+  background: #f8fafc;
+  border: 1px dashed var(--border-color);
+  color: var(--accent-forest);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.chip-toggle-btn:hover {
+  background: var(--accent-lightgreen);
+  border-style: solid;
+}
+
 .chip-btn {
   background: #f3f4f6;
   border: 1px solid var(--border-color);

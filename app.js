@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeTab = 'tab-overview';
   
   let powerlinkActiveChips = new Set();
+  let powerlinkActiveSearchTypes = new Set();
   let shoppingActiveChips = new Set();
   let newproductActiveChips = new Set();
 
@@ -86,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
       Campaign: item.Campaign || item.c || '',
       AdGroupCat: item.AdGroupCat || item.ag || '',
       Keyword: item.Keyword || item.kw || '',
+      SearchType: item.SearchType || item.st || '',
       ProductName: item.ProductName || item.pn || '',
       SojaeId: item.SojaeId || item.sid || '',
       Imp: item.Imp !== undefined ? item.Imp : (item.i || 0),
@@ -599,6 +601,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
     }
+  };
+
+  // Powerlink Search Type Chips Filter
+  const renderPowerlinkSearchTypeChips = (plKwList) => {
+    const chipContainer = document.getElementById('powerlinkSearchTypeChips');
+    if (!chipContainer) return;
+
+    const typeSet = new Set();
+    plKwList.forEach(k => {
+      if (k.SearchType) typeSet.add(k.SearchType);
+    });
+
+    const typeList = Array.from(typeSet).sort();
+    const allBtnClass = powerlinkActiveSearchTypes.size === 0 ? 'chip-btn active' : 'chip-btn';
+    let chipsHtml = `<button class="${allBtnClass}" data-type="ALL">전체 유형 보기</button>`;
+
+    typeList.forEach(t => {
+      const isActive = powerlinkActiveSearchTypes.has(t) ? 'chip-btn active' : 'chip-btn';
+      chipsHtml += `<button class="${isActive}" data-type="${t}">${t}</button>`;
+    });
+
+    chipContainer.innerHTML = chipsHtml;
+
+    chipContainer.querySelectorAll('.chip-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.getAttribute('data-type');
+        if (type === 'ALL') {
+          powerlinkActiveSearchTypes.clear();
+        } else {
+          if (powerlinkActiveSearchTypes.has(type)) powerlinkActiveSearchTypes.delete(type);
+          else powerlinkActiveSearchTypes.add(type);
+        }
+        renderPowerlinkSearchTypeChips(plKwList);
+        if (updatePowerlinkKwTable) updatePowerlinkKwTable();
+      });
+    });
   };
 
   // Powerlink PC / MO Campaign Table with Shaded Summaries
@@ -1340,17 +1378,32 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Overview Campaign Type Table with WoW & MoM ROAS Diff
     renderOverviewCampaignTypeTable(filteredGroups, getData());
 
-    // 3. Powerlink AdGroup Category Table
+    // 3. Powerlink AdGroup Category Table & Chips Toggle
+    const plKw = filteredKw.filter(k => k.CampaignType === '파워링크');
     renderPowerlinkAdGroupCats(filteredGroups.filter(g => g.CampaignType === '파워링크'));
+    renderPowerlinkSearchTypeChips(plKw);
+
+    const btnToggleChips = document.getElementById('btnTogglePowerlinkChips');
+    const chipBox = document.getElementById('powerlinkAdGroupChips');
+    if (btnToggleChips && chipBox) {
+      btnToggleChips.onclick = () => {
+        chipBox.classList.toggle('expanded');
+        if (chipBox.classList.contains('expanded')) {
+          btnToggleChips.innerText = '▲ 광고그룹 필터 접기';
+        } else {
+          btnToggleChips.innerText = '▼ 광고그룹 필터 전체보기 / 펼치기';
+        }
+      };
+    }
 
     // 4. Powerlink PC / MO Campaign Table with Shaded Summaries
     renderPowerlinkDeviceTable(filteredGroups.filter(g => g.CampaignType === '파워링크'));
 
     // 5. Powerlink TOP 10 Keywords & Growth Keywords Split
-    renderPowerlinkTop10Kw(filteredKw.filter(k => k.CampaignType === '파워링크'));
+    renderPowerlinkTop10Kw(plKw);
     renderPowerlinkKwGrowthSplit(getData());
 
-    // 6. Bottom Powerlink Keywords Table with Chip Filter & Dupe Combination
+    // 6. Bottom Powerlink Keywords Table with Chip Filter, SearchType Filter & Dupe Combination
     updatePowerlinkKwTable = setupTable({
       tableId: 'tablePowerlinkKw',
       searchId: 'searchPowerlinkKw',
@@ -1363,12 +1416,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (powerlinkActiveChips.size > 0) {
           plList = plList.filter(k => powerlinkActiveChips.has(k.AdGroupCat));
         }
+        if (powerlinkActiveSearchTypes.size > 0) {
+          plList = plList.filter(k => powerlinkActiveSearchTypes.has(k.SearchType));
+        }
         // Combine duplicate keyword names
         const combined = {};
         plList.forEach(k => {
           const kw = k.Keyword;
           if (!combined[kw]) {
-            combined[kw] = { Keyword: kw, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+            combined[kw] = { Keyword: kw, SearchType: k.SearchType || '-', Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
           }
           combined[kw].Imp += k.Imp || 0;
           combined[kw].Clk += k.Clk || 0;
@@ -1387,6 +1443,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
           <tr>
             <td><strong>${k.Keyword}</strong></td>
+            <td><span class="kpi-badge">${k.SearchType || '-'}</span></td>
             <td class="number-col">${fmtNum(k.Imp)}</td>
             <td class="number-col">${fmtNum(k.Clk)}</td>
             <td class="number-col">${fmtPct(ctr)}</td>
@@ -1406,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const spGroups = filteredGroups.filter(g => g.CampaignType === '쇼핑검색');
     renderShoppingAdGroupCats(spGroups);
 
-    // 8. Shopping Products Table
+    // 8. Shopping Products Table (SojaeId Removed)
     updateShoppingProdTable = setupTable({
       tableId: 'tableShoppingProd',
       searchId: 'searchShoppingProd',
@@ -1429,7 +1486,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <tr>
             <td><span class="kpi-badge">${p.AdGroupCat || '-'}</span></td>
             <td><strong>${p.ProductName}</strong></td>
-            <td><code style="font-size:11px; color:var(--text-muted);">${p.SojaeId || '-'}</code></td>
             <td class="number-col">${fmtNum(p.Imp)}</td>
             <td class="number-col">${fmtNum(p.Clk)}</td>
             <td class="number-col">${fmtPct(ctr)}</td>
@@ -1445,7 +1501,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     updateShoppingProdTable();
 
-    // 9. Shopping Keywords Table
+    // 9. Shopping Keywords Table (Combine Duplicates into 1 Row)
     updateShoppingKwTable = setupTable({
       tableId: 'tableShoppingKw',
       searchId: 'searchShoppingKw',
@@ -1456,7 +1512,19 @@ document.addEventListener('DOMContentLoaded', () => {
       getRawData: () => {
         let list = filteredKw.filter(k => k.CampaignType === '쇼핑검색');
         if (shoppingActiveChips.size > 0) list = list.filter(k => shoppingActiveChips.has(k.AdGroupCat));
-        return list;
+        const combined = {};
+        list.forEach(k => {
+          const kw = k.Keyword;
+          if (!combined[kw]) {
+            combined[kw] = { Keyword: kw, AdGroupCat: k.AdGroupCat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+          }
+          combined[kw].Imp += k.Imp || 0;
+          combined[kw].Clk += k.Clk || 0;
+          combined[kw].CostNoVat += k.CostNoVat || 0;
+          combined[kw].Conv += k.Conv || 0;
+          combined[kw].Revenue += k.Revenue || 0;
+        });
+        return Object.values(combined);
       },
       defaultSort: 'Revenue',
       renderRow: (k) => {
@@ -1485,7 +1553,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const npGroups = filteredGroups.filter(g => g.CampaignType === '신제품검색');
     renderNewproductAdGroupCats(npGroups);
 
-    // 11. NewProduct Keywords Table (from Sheet4 RAW)
+    // 11. NewProduct Keywords Table (Combine Duplicates into 1 Row)
     updateNewproductKwTable = setupTable({
       tableId: 'tableNewproductKw',
       searchId: 'searchNewproductKw',
@@ -1496,7 +1564,19 @@ document.addEventListener('DOMContentLoaded', () => {
       getRawData: () => {
         let list = filteredKw.filter(k => k.CampaignType === '신제품검색' || (k.Campaign && k.Campaign.includes('신제품')));
         if (newproductActiveChips.size > 0) list = list.filter(k => newproductActiveChips.has(k.AdGroupCat));
-        return list;
+        const combined = {};
+        list.forEach(k => {
+          const kw = k.Keyword;
+          if (!combined[kw]) {
+            combined[kw] = { Keyword: kw, AdGroupCat: k.AdGroupCat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+          }
+          combined[kw].Imp += k.Imp || 0;
+          combined[kw].Clk += k.Clk || 0;
+          combined[kw].CostNoVat += k.CostNoVat || 0;
+          combined[kw].Conv += k.Conv || 0;
+          combined[kw].Revenue += k.Revenue || 0;
+        });
+        return Object.values(combined);
       },
       defaultSort: 'Clk',
       renderRow: (k) => {
