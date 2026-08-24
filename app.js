@@ -55,6 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let powerlinkTop10Device = 'ALL';
   let powerlinkKwDevice = 'ALL';
 
+  let shoppingAdGroupDevice = 'ALL';
+  let shoppingProdDevice = 'ALL';
+  let shoppingKwDevice = 'ALL';
+
   const getDeviceType = (item) => {
     if (!item) return 'PC';
     const cName = (item.Campaign || '').toUpperCase();
@@ -995,8 +999,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.querySelector('#tableShoppingAdGroupCat tbody');
     const chipContainer = document.getElementById('shoppingAdGroupChips');
 
+    let filtered = shoppingGroups;
+    if (shoppingAdGroupDevice !== 'ALL') {
+      filtered = filtered.filter(g => getDeviceType(g) === shoppingAdGroupDevice);
+    }
+
     const catMap = {};
-    shoppingGroups.forEach(g => {
+    filtered.forEach(g => {
       const cat = g.AdGroupCat || '미지정';
       if (!catMap[cat]) {
         catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
@@ -1061,6 +1070,18 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   };
+
+  // Event Listener for Shopping AdGroup Device Filter Buttons
+  const spAdgroupDevBtns = document.querySelectorAll('#shoppingAdGroupDeviceGroup .subtab-btn');
+  spAdgroupDevBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      spAdgroupDevBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      shoppingAdGroupDevice = btn.getAttribute('data-device');
+      const spGroups = filterList(getData().groups.filter(g => g.CampaignType === '쇼핑검색'));
+      renderShoppingAdGroupCats(spGroups);
+    });
+  });
 
   // NewProduct Tab: AdGroup Categories Performance Table & Chips Filter
   const renderNewproductAdGroupCats = (npGroups) => {
@@ -1619,7 +1640,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const spGroups = filteredGroups.filter(g => g.CampaignType === '쇼핑검색');
     renderShoppingAdGroupCats(spGroups);
 
-    // 8. Shopping Products Table (SojaeId Removed)
+    // 8. Shopping Products Table (SojaeId Removed + Device Filter)
     updateShoppingProdTable = setupTable({
       tableId: 'tableShoppingProd',
       searchId: 'searchShoppingProd',
@@ -1630,6 +1651,7 @@ document.addEventListener('DOMContentLoaded', () => {
       getRawData: () => {
         let list = filteredProd.filter(p => p.CampaignType === '쇼핑검색');
         if (shoppingActiveChips.size > 0) list = list.filter(p => shoppingActiveChips.has(p.AdGroupCat));
+        if (shoppingProdDevice !== 'ALL') list = list.filter(p => getDeviceType(p) === shoppingProdDevice);
         return list;
       },
       defaultSort: 'Revenue',
@@ -1642,6 +1664,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <tr>
             <td><span class="kpi-badge">${p.AdGroupCat || '-'}</span></td>
             <td><strong>${p.ProductName}</strong></td>
+            <td><span class="kpi-badge">${getDeviceType(p)}</span></td>
             <td class="number-col">${fmtNum(p.Imp)}</td>
             <td class="number-col">${fmtNum(p.Clk)}</td>
             <td class="number-col">${fmtPct(ctr)}</td>
@@ -1657,7 +1680,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     updateShoppingProdTable();
 
-    // 9. Shopping Keywords Table (Combine Duplicates into 1 Row)
+    // Event Listeners for Shopping Products Device Filter
+    const spProdDevBtns = document.querySelectorAll('#shoppingProdDeviceGroup .subtab-btn');
+    spProdDevBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        spProdDevBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        shoppingProdDevice = btn.getAttribute('data-device');
+        updateShoppingProdTable();
+      });
+    });
+
+    // 9. Shopping Keywords Table (Combine Duplicates per Keyword + Device)
     updateShoppingKwTable = setupTable({
       tableId: 'tableShoppingKw',
       searchId: 'searchShoppingKw',
@@ -1668,17 +1702,19 @@ document.addEventListener('DOMContentLoaded', () => {
       getRawData: () => {
         let list = filteredKw.filter(k => k.CampaignType === '쇼핑검색');
         if (shoppingActiveChips.size > 0) list = list.filter(k => shoppingActiveChips.has(k.AdGroupCat));
+        if (shoppingKwDevice !== 'ALL') list = list.filter(k => getDeviceType(k) === shoppingKwDevice);
         const combined = {};
         list.forEach(k => {
-          const kw = k.Keyword;
-          if (!combined[kw]) {
-            combined[kw] = { Keyword: kw, AdGroupCat: k.AdGroupCat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+          const dev = getDeviceType(k);
+          const kwKey = k.Keyword + '|' + dev;
+          if (!combined[kwKey]) {
+            combined[kwKey] = { Keyword: k.Keyword, Device: dev, AdGroupCat: k.AdGroupCat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
           }
-          combined[kw].Imp += k.Imp || 0;
-          combined[kw].Clk += k.Clk || 0;
-          combined[kw].CostNoVat += k.CostNoVat || 0;
-          combined[kw].Conv += k.Conv || 0;
-          combined[kw].Revenue += k.Revenue || 0;
+          combined[kwKey].Imp += k.Imp || 0;
+          combined[kwKey].Clk += k.Clk || 0;
+          combined[kwKey].CostNoVat += k.CostNoVat || 0;
+          combined[kwKey].Conv += k.Conv || 0;
+          combined[kwKey].Revenue += k.Revenue || 0;
         });
         return Object.values(combined);
       },
@@ -1691,6 +1727,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <tr>
             <td><span class="kpi-badge">${k.AdGroupCat || '-'}</span></td>
             <td><strong>${k.Keyword}</strong></td>
+            <td><span class="kpi-badge">${k.Device || '-'}</span></td>
             <td class="number-col">${fmtNum(k.Imp)}</td>
             <td class="number-col">${fmtNum(k.Clk)}</td>
             <td class="number-col">${fmtPct(ctr)}</td>
@@ -1704,6 +1741,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     updateShoppingKwTable();
+
+    // Event Listeners for Shopping Keywords Device Filter
+    const spKwDevBtns = document.querySelectorAll('#shoppingKwDeviceGroup .subtab-btn');
+    spKwDevBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        spKwDevBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        shoppingKwDevice = btn.getAttribute('data-device');
+        updateShoppingKwTable();
+      });
+    });
 
     // 10. NewProduct Tab: AdGroup Categories & Chips Filter
     const npGroups = filteredGroups.filter(g => g.CampaignType === '신제품검색');
