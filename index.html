@@ -1,35 +1,766 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 Not Found</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f8f9fa;
-            color: #343a40;
-            text-align: center;
-        }
-        .container {
-            padding: 40px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        h1 { font-size: 48px; margin: 0 0 10px 0; color: #e03131; }
-        p { font-size: 18px; margin: 0; color: #495057; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이니스프리 검색광고 (SA) & 쇼핑검색 성과 대시보드</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Data Script -->
+  <script src="dashboard_data.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>404 Not Found</h1>
-        <p>요청하신 페이지를 찾을 수 없거나 비공개로 전환되었습니다.</p>
+
+  <!-- Password Protection Modal Overlay -->
+  <div id="passwordModalOverlay">
+    <div class="password-card">
+      <div class="password-badge">🌿 이니스프리 SA 대시보드</div>
+      <h2>🔒 보안 인증</h2>
+      <p>대시보드 접근을 위해 비밀번호를 입력해 주세요.</p>
+      <div class="password-input-group">
+        <input type="password" id="accessPasswordInput" placeholder="비밀번호 입력..." autocomplete="current-password" />
+      </div>
+      <button class="password-btn" id="btnCheckPassword">접속하기</button>
+      <div class="password-error" id="passwordErrorMsg">❌ 비밀번호가 올바르지 않습니다.</div>
     </div>
+  </div>
+
+  <!-- Header / Navbar (Innisfree Theme) -->
+  <header class="header">
+    <div class="header-container">
+      <div class="logo-area">
+        <div class="logo-icon">innisfree</div>
+        <div class="title-text">
+          <h1>검색광고 & 쇼핑검색 캠페인 성과 대시보드</h1>
+          <p>네이버 SA RAW 데이터 기준 종합 분석 리포트</p>
+        </div>
+      </div>
+      
+      <!-- Global Month & Week Filters -->
+      <div class="controls-area">
+        <div class="filter-group">
+          <span class="filter-label">📅 조회 월:</span>
+          <div class="select-wrapper">
+            <select id="monthSelect">
+              <option value="8" selected>8월 (August)</option>
+              <option value="ALL">전체 (All Months)</option>
+              <option value="6">6월</option>
+              <option value="7">7월</option>
+              <option value="9">9월</option>
+              <option value="10">10월</option>
+              <option value="11">11월</option>
+              <option value="12">12월</option>
+              <option value="1">1월</option>
+              <option value="2">2월</option>
+              <option value="3">3월</option>
+              <option value="4">4월</option>
+              <option value="5">5월</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">📆 주차 구분:</span>
+          <div class="select-wrapper">
+            <select id="weekSelect">
+              <option value="ALL" selected>선택월 전체</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- KPI Summary Cards Grid (Dynamic per Active Tab!) -->
+    <section class="kpi-grid">
+      <div class="kpi-card" style="--card-color: #006633;">
+        <div class="kpi-header">
+          <span class="kpi-title" id="kpiTitleCost">총 광고비 (VAT제외)</span>
+          <span class="kpi-badge" id="kpiBadgeTab">전체 캠페인</span>
+        </div>
+        <div class="kpi-value" id="kpiTotalCostNoVat">0원</div>
+        <div class="kpi-sub">
+          <span>VAT포함: <span id="kpiCostVat" class="highlight">0원</span></span>
+        </div>
+      </div>
+
+      <div class="kpi-card" style="--card-color: #059669;">
+        <div class="kpi-header">
+          <span class="kpi-title">총 전환매출액</span>
+          <span class="kpi-badge">Revenue</span>
+        </div>
+        <div class="kpi-value" id="kpiTotalRevenue">0원</div>
+        <div class="kpi-sub">
+          <span>전환수: <span id="kpiTotalConv" class="highlight up">0건</span></span>
+        </div>
+      </div>
+
+      <div class="kpi-card" style="--card-color: #d97706;">
+        <div class="kpi-header">
+          <span class="kpi-title">ROAS</span>
+          <span class="kpi-badge">Efficiency</span>
+        </div>
+        <div class="kpi-value" id="kpiRoas">0%</div>
+        <div class="kpi-sub">
+          <span>객단가(AOV): <span id="kpiAov" class="highlight">0원</span></span>
+        </div>
+      </div>
+
+      <div class="kpi-card" style="--card-color: #0284c7;">
+        <div class="kpi-header">
+          <span class="kpi-title">총 클릭수 (Clicks)</span>
+          <span class="kpi-badge">Traffic</span>
+        </div>
+        <div class="kpi-value" id="kpiTotalClicks">0회</div>
+        <div class="kpi-sub">
+          <span>CTR: <span id="kpiCtr" class="highlight">0%</span> | CPC: <span id="kpiCpc" class="highlight">0원</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-navigation">
+      <button class="tab-btn active" data-tab="tab-overview">📊 종합 성과</button>
+      <button class="tab-btn" data-tab="tab-powerlink">🔗 파워링크</button>
+      <button class="tab-btn" data-tab="tab-shopping">🛒 쇼핑검색</button>
+      <button class="tab-btn" data-tab="tab-newproduct">✨ 신제품검색</button>
+    </nav>
+
+    <!-- TAB 1: OVERVIEW (종합성과) -->
+    <div id="tab-overview" class="tab-content active">
+
+      <!-- Executive Insights (월/주차/그룹/매출&ROAS 견인 요약 포함) -->
+      <section class="insight-box">
+        <div class="insight-header">
+          <div class="insight-icon">🌿</div>
+          <h3 class="insight-title">검색광고 종합 성과 인사이트 리포트</h3>
+        </div>
+        <div class="insight-list" id="overviewInsightList"></div>
+      </section>
+
+      <!-- Charts Row (Fixed to Month Total) -->
+      <section class="charts-grid">
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">📈 주차별 광고 전체 성과 추이 (월 전체 고정)</h3>
+              <p class="card-subtitle">선택 월 전체 주차별 광고비(VAT제외) vs 전환매출액 vs ROAS (%)</p>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chartWeeklyOverview"></canvas>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">🍩 캠페인유형별 성과 비중 (월 전체 고정)</h3>
+              <p class="card-subtitle">선택 월 전체 캠페인유형별 매출 기여도</p>
+            </div>
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="chartCampaignShare"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- 설정월 주차별 성과데이터 표 (월 전체 주차 표시 고정) -->
+      <section class="card" style="margin-top: 28px;">
+        <div class="card-header">
+          <h3 class="card-title">📅 설정월 주차별 성과 데이터 표 (월 전체 주차 고정 표출)</h3>
+          <p class="card-subtitle">선택 월 전체(강조) 및 주차별 세부 실적 (객단가 지표 포함)</p>
+        </div>
+        <div class="table-container">
+          <table id="tableWeeklyDataOverview">
+            <thead>
+              <tr>
+                <th>구분 (주차)</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 캠페인유형별 성과데이터 표 (전주대비 & 전월대비 ROAS 증감 포함) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">🏢 캠페인유형별 성과 데이터 (전주대비 & 전월대비 ROAS 증감 포함)</h3>
+          <p class="card-subtitle">필터 조건 기반 파워링크 / 쇼핑검색 / 신제품검색 실적 비교</p>
+        </div>
+        <div class="table-container">
+          <table id="tableCampaignTypeOverview">
+            <thead>
+              <tr>
+                <th>캠페인유형</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">전주 대비 ROAS (WoW)</th>
+                <th class="number-col">전월 대비 ROAS (MoM)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- TAB 2: POWERLINK (파워링크) -->
+    <div id="tab-powerlink" class="tab-content">
+      <section class="insight-box">
+        <div class="insight-header">
+          <div class="insight-icon">🔍</div>
+          <h3 class="insight-title">파워링크 캠페인 인사이트 리포트</h3>
+        </div>
+        <div class="insight-list" id="powerlinkInsightList"></div>
+      </section>
+
+      <!-- 파워링크 주차별 성과추이 그래프 (월 고정, 전환매출액 & ROAS) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">📈 파워링크 주차별 성과 추이 (월 전체 고정: 전환매출액 & ROAS)</h3>
+        </div>
+        <div class="chart-wrapper" style="height: 300px;">
+          <canvas id="chartPowerlinkWeekly"></canvas>
+        </div>
+      </section>
+
+      <!-- 파워링크 주차별 성과 데이터 표 (월 고정) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">📅 파워링크 주차별 성과 데이터 표</h3>
+        </div>
+        <div class="table-container">
+          <table id="tablePowerlinkWeekly">
+            <thead>
+              <tr>
+                <th>구분 (주차)</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 파워링크 '광고그룹'별 성과 데이터 표 -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">🏷️ 파워링크 '광고그룹'별 성과 데이터 표</h3>
+          <p class="card-subtitle">광고그룹별 광고비, 매출액, ROAS, 객단가 비교</p>
+        </div>
+        <div class="table-container">
+          <table id="tablePowerlinkAdGroupCat">
+            <thead>
+              <tr>
+                <th>광고그룹</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PC / MO 캠페인별 성과 표 (전체 PC/MO 요약 행 음영 포함) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">💻📱 PC / MO 캠페인별 성과 표 (전체 PC / MO 음영 요약 포함)</h3>
+          <p class="card-subtitle">캠페인명 기준 PC 및 MO 구분 및 전체 요약 분석</p>
+        </div>
+        <div class="table-container">
+          <table id="tablePowerlinkDeviceCampaign">
+            <thead>
+              <tr>
+                <th>디바이스 구분</th>
+                <th>캠페인명</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TOP 10 키워드 분석 (매출액 TOP10 / 광고비 상위 20개 기준 ROAS TOP10 / ROAS 저효율 TOP10) -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">🥇 필터날짜 기준 TOP 10 키워드 분석</h3>
+            <p class="card-subtitle">※ ROAS TOP 10: 광고비 상위 20개 키워드 기준 | ROAS 저효율 TOP 10: ROAS 500% 미만 키워드 (광고비 내림차순)</p>
+          </div>
+          <div class="subtab-group" id="kwTop10Group">
+            <button class="subtab-btn active" data-top="Revenue">💰 매출액 TOP 10</button>
+            <button class="subtab-btn" data-top="Roas">📈 ROAS TOP 10 (광고비 상위 20)</button>
+            <button class="subtab-btn" data-top="LowRoas">⚠️ ROAS 저효율 TOP 10 (ROAS < 500%)</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table id="tablePowerlinkKwTop10">
+            <thead>
+              <tr>
+                <th>순위</th>
+                <th>키워드 (검색어)</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ROAS 증감 TOP 키워드 (좌/우 2개 카드 분리: 증가폭 큰 키워드 / 감소폭 큰 키워드) -->
+      <section style="margin-bottom: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 class="card-title">🚀 ROAS 증감 TOP 키워드 (광고비 상위 30개 키워드 기준)</h3>
+          <div class="subtab-group" id="kwGrowthGroup">
+            <button class="subtab-btn active" data-diff="wow">전주 대비 (WoW)</button>
+            <button class="subtab-btn" data-diff="mom">전월 대비 (MoM)</button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <!-- Left Card: ROAS 증가폭 큰 TOP 키워드 -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+              <h4 style="font-size: 14px; font-weight: 800; color: var(--accent-mint);">📈 ROAS 증가폭 큰 TOP 키워드</h4>
+            </div>
+            <div class="table-container">
+              <table id="tablePowerlinkKwGrowthUp">
+                <thead>
+                  <tr>
+                    <th>순위</th>
+                    <th>키워드</th>
+                    <th class="number-col">현재 ROAS (%)</th>
+                    <th class="number-col">이전 ROAS (%)</th>
+                    <th class="number-col">증가폭 (%p)</th>
+                    <th class="number-col">광고비 (VAT제외)</th>
+                    <th class="number-col">전환매출액</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right Card: ROAS 감소폭 큰 TOP 키워드 -->
+          <div class="card" style="margin-bottom: 0;">
+            <div class="card-header">
+              <h4 style="font-size: 14px; font-weight: 800; color: var(--accent-rose);">📉 ROAS 감소폭 큰 TOP 키워드</h4>
+            </div>
+            <div class="table-container">
+              <table id="tablePowerlinkKwGrowthDown">
+                <thead>
+                  <tr>
+                    <th>순위</th>
+                    <th>키워드</th>
+                    <th class="number-col">현재 ROAS (%)</th>
+                    <th class="number-col">이전 ROAS (%)</th>
+                    <th class="number-col">감소폭 (%p)</th>
+                    <th class="number-col">광고비 (VAT제외)</th>
+                    <th class="number-col">전환매출액</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 파워링크 전체 키워드 성과 표 ('광고그룹' 클릭 In/Out 필터 + 동일 키워드명 합산) -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title">🔑 파워링크 키워드 성과 표</h3>
+            <p class="card-subtitle">※ 동일 키워드명 자동 통합 / '광고그룹' 클릭 필터 적용</p>
+          </div>
+        </div>
+
+        <!-- Interactive Chip Buttons for Powerlink AdGroup Category -->
+        <div class="chip-filter-section">
+          <div class="chip-filter-title">
+            <span>🔘 '광고그룹' 필터 선택 (클릭하여 필터 In / Out):</span>
+          </div>
+          <div class="chip-container" id="powerlinkAdGroupChips">
+            <!-- Dynamic chips -->
+          </div>
+        </div>
+
+        <div class="table-controls">
+          <input type="text" id="searchPowerlinkKw" class="search-input" placeholder="키워드 검색..." />
+          <span class="card-subtitle" id="countPowerlinkKw">총 0개 키워드</span>
+        </div>
+        <div class="table-container">
+          <table id="tablePowerlinkKw">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="Keyword">키워드</th>
+                <th class="sortable number-col" data-sort="Imp">노출수</th>
+                <th class="sortable number-col" data-sort="Clk">클릭수</th>
+                <th class="sortable number-col" data-sort="Ctr">CTR (%)</th>
+                <th class="sortable number-col" data-sort="CostNoVat">총광고비 (VAT제외)</th>
+                <th class="sortable number-col" data-sort="Conv">전환수</th>
+                <th class="sortable number-col" data-sort="Revenue">전환매출액</th>
+                <th class="sortable number-col" data-sort="Roas">ROAS (%)</th>
+                <th class="sortable number-col" data-sort="Aov">객단가 (원)</th>
+                <th class="sortable number-col" data-sort="Cpc">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="pagination-wrapper">
+          <span id="pageInfoPowerlinkKw">Page 1 of 1</span>
+          <div>
+            <button class="pagination-btn" id="prevPowerlinkKw">이전</button>
+            <button class="pagination-btn" id="nextPowerlinkKw">다음</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- TAB 3: SHOPPING SEARCH (쇼핑검색) -->
+    <div id="tab-shopping" class="tab-content">
+      <section class="insight-box">
+        <div class="insight-header">
+          <div class="insight-icon">🛒</div>
+          <h3 class="insight-title">쇼핑검색 캠페인 인사이트 리포트</h3>
+        </div>
+        <div class="insight-list" id="shoppingInsightList"></div>
+      </section>
+
+      <!-- 쇼핑검색 주차별 성과추이 그래프 (월 고정) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">📈 쇼핑검색 주차별 성과 추이 (월 전체 고정)</h3>
+        </div>
+        <div class="chart-wrapper" style="height: 300px;">
+          <canvas id="chartShoppingWeekly"></canvas>
+        </div>
+      </section>
+
+      <!-- 쇼핑검색 주차별 성과 데이터 표 -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">📅 쇼핑검색 주차별 성과 데이터 표</h3>
+        </div>
+        <div class="table-container">
+          <table id="tableShoppingWeekly">
+            <thead>
+              <tr>
+                <th>구분 (주차)</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 광고그룹 별 성과 데이터 표 -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">🏷️ 쇼핑검색 '광고그룹'별 성과 데이터 표</h3>
+          <p class="card-subtitle">광고그룹별 광고비, 매출액, ROAS, 객단가 비교</p>
+        </div>
+        <div class="table-container">
+          <table id="tableShoppingAdGroupCat">
+            <thead>
+              <tr>
+                <th>광고그룹</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Interactive Chip/Pill Buttons for '광고그룹' Filter -->
+      <section class="chip-filter-section">
+        <div class="chip-filter-title">
+          <span>🔘 '광고그룹' 필터 선택 (클릭하여 필터 In / Out):</span>
+        </div>
+        <div class="chip-container" id="shoppingAdGroupChips">
+          <!-- Dynamic chips -->
+        </div>
+      </section>
+
+      <!-- 쇼핑검색 소재(상품)별 성과 표 -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">🛍️ 쇼핑검색 상품(소재)별 성과 표</h3>
+        </div>
+        <div class="table-controls">
+          <input type="text" id="searchShoppingProd" class="search-input" placeholder="상품명 또는 소재ID 검색..." />
+          <span class="card-subtitle" id="countShoppingProd">총 0개 상품</span>
+        </div>
+        <div class="table-container">
+          <table id="tableShoppingProd">
+            <thead>
+              <tr>
+                <th>광고그룹 구분</th>
+                <th class="sortable" data-sort="ProductName">노출용 소재명 (상품명)</th>
+                <th class="sortable" data-sort="SojaeId">소재 ID</th>
+                <th class="sortable number-col" data-sort="Imp">노출수</th>
+                <th class="sortable number-col" data-sort="Clk">클릭수</th>
+                <th class="sortable number-col" data-sort="Ctr">CTR (%)</th>
+                <th class="sortable number-col" data-sort="CostNoVat">총광고비 (VAT제외)</th>
+                <th class="sortable number-col" data-sort="Conv">전환수</th>
+                <th class="sortable number-col" data-sort="Revenue">전환매출액</th>
+                <th class="sortable number-col" data-sort="Roas">ROAS (%)</th>
+                <th class="sortable number-col" data-sort="Aov">객단가 (원)</th>
+                <th class="sortable number-col" data-sort="Cpc">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="pagination-wrapper">
+          <span id="pageInfoShoppingProd">Page 1 of 1</span>
+          <div>
+            <button class="pagination-btn" id="prevShoppingProd">이전</button>
+            <button class="pagination-btn" id="nextShoppingProd">다음</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 쇼핑검색 키워드별 성과 표 -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">🔑 쇼핑검색 키워드별 성과 표</h3>
+        </div>
+        <div class="table-controls">
+          <input type="text" id="searchShoppingKw" class="search-input" placeholder="쇼핑 키워드 검색..." />
+          <span class="card-subtitle" id="countShoppingKw">총 0개 키워드</span>
+        </div>
+        <div class="table-container">
+          <table id="tableShoppingKw">
+            <thead>
+              <tr>
+                <th>광고그룹 구분</th>
+                <th class="sortable" data-sort="Keyword">검색어</th>
+                <th class="sortable number-col" data-sort="Imp">노출수</th>
+                <th class="sortable number-col" data-sort="Clk">클릭수</th>
+                <th class="sortable number-col" data-sort="Ctr">CTR (%)</th>
+                <th class="sortable number-col" data-sort="CostNoVat">총광고비 (VAT제외)</th>
+                <th class="sortable number-col" data-sort="Conv">전환수</th>
+                <th class="sortable number-col" data-sort="Revenue">전환매출액</th>
+                <th class="sortable number-col" data-sort="Roas">ROAS (%)</th>
+                <th class="sortable number-col" data-sort="Aov">객단가 (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="pagination-wrapper">
+          <span id="pageInfoShoppingKw">Page 1 of 1</span>
+          <div>
+            <button class="pagination-btn" id="prevShoppingKw">이전</button>
+            <button class="pagination-btn" id="nextShoppingKw">다음</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 4: NEW PRODUCT SEARCH (신제품검색) -->
+    <div id="tab-newproduct" class="tab-content">
+      <section class="insight-box">
+        <div class="insight-header">
+          <div class="insight-icon">✨</div>
+          <h3 class="insight-title">신제품검색 캠페인 인사이트 리포트</h3>
+        </div>
+        <div class="insight-list" id="newproductInsightList"></div>
+      </section>
+
+      <!-- 신제품검색 주차별 성과추이 그래프 (월 고정, 지표: 클릭수 & ROAS) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">📈 신제품검색 주차별 성과 추이 (월 전체 고정: 클릭수 & ROAS)</h3>
+        </div>
+        <div class="chart-wrapper" style="height: 300px;">
+          <canvas id="chartNewproductWeekly"></canvas>
+        </div>
+      </section>
+
+      <!-- 신제품검색 주차별 성과 데이터 표 -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">📅 신제품검색 주차별 성과 데이터 표</h3>
+        </div>
+        <div class="table-container">
+          <table id="tableNewproductWeekly">
+            <thead>
+              <tr>
+                <th>구분 (주차)</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 신제품검색 광고그룹별 성과데이터 표 (자외선차단제 등 포함) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">🏷️ 신제품검색 광고그룹별 성과 데이터 표</h3>
+          <p class="card-subtitle">자외선차단제 및 신제품 라인업 광고그룹별 실적 비교</p>
+        </div>
+        <div class="table-container">
+          <table id="tableNewproductAdGroupCat">
+            <thead>
+              <tr>
+                <th>광고그룹</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Interactive Chip Buttons for New Product Search AdGroup Category -->
+      <section class="chip-filter-section">
+        <div class="chip-filter-title">
+          <span>🔘 신제품 '광고그룹' 필터 선택 (클릭하여 필터 In / Out):</span>
+        </div>
+        <div class="chip-container" id="newproductAdGroupChips">
+          <!-- Dynamic chips -->
+        </div>
+      </section>
+
+      <!-- 신제품검색 키워드 데이터 표 (네이버_키워드별_RAW 연동) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">🔑 신제품검색 키워드 성과 표</h3>
+        </div>
+        <div class="table-controls">
+          <input type="text" id="searchNewproductKw" class="search-input" placeholder="키워드 검색..." />
+          <span class="card-subtitle" id="countNewproductKw">총 0개 키워드</span>
+        </div>
+        <div class="table-container">
+          <table id="tableNewproductKw">
+            <thead>
+              <tr>
+                <th>광고그룹 구분</th>
+                <th class="sortable" data-sort="Keyword">검색어</th>
+                <th class="sortable number-col" data-sort="Imp">노출수</th>
+                <th class="sortable number-col" data-sort="Clk">클릭수</th>
+                <th class="sortable number-col" data-sort="Ctr">CTR (%)</th>
+                <th class="sortable number-col" data-sort="CostNoVat">총광고비 (VAT제외)</th>
+                <th class="sortable number-col" data-sort="Conv">전환수</th>
+                <th class="sortable number-col" data-sort="Revenue">전환매출액</th>
+                <th class="sortable number-col" data-sort="Roas">ROAS (%)</th>
+                <th class="sortable number-col" data-sort="Aov">객단가 (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="pagination-wrapper">
+          <span id="pageInfoNewproductKw">Page 1 of 1</span>
+          <div>
+            <button class="pagination-btn" id="prevNewproductKw">이전</button>
+            <button class="pagination-btn" id="nextNewproductKw">다음</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <p>이니스프리 검색광고 (SA) 성과 대시보드 ⓒ 2026. Data extracted & processed from RAW.xlsx.</p>
+  </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>

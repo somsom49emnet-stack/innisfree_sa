@@ -1,8 +1,6 @@
 # Git Ignore Rules
 RAW.xlsx
 RAW2.xlsx
-dashboard_data.js
-dashboard_data.json
 index_dashboard.html
 *.log
 *.tmp

@@ -689,3 +689,116 @@ tr.summary-shaded-row td {
   font-size: 12px;
   color: var(--text-dim);
 }
+
+/* Password Protection Overlay Modal */
+#passwordModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #002813 0%, #006633 50%, #0b4021 100%);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.password-card {
+  background: #ffffff;
+  width: 90%;
+  max-width: 400px;
+  padding: 40px 32px;
+  border-radius: 20px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  animation: pwdCardAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pwdCardAppear {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.password-badge {
+  display: inline-block;
+  background: #e6f4ea;
+  color: #006633;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+
+.password-card h2 {
+  color: #111827;
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+}
+
+.password-card p {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.password-input-group {
+  margin-bottom: 16px;
+}
+
+.password-input-group input {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.password-input-group input:focus {
+  border-color: #006633;
+  box-shadow: 0 0 0 4px rgba(0, 102, 51, 0.1);
+}
+
+.password-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #006633;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 12px rgba(0, 102, 51, 0.25);
+}
+
+.password-btn:hover {
+  background: #004d26;
+}
+
+.password-btn:active {
+  transform: scale(0.98);
+}
+
+.password-error {
+  margin-top: 14px;
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 13px;
+  display: none;
+  background: #fef2f2;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
