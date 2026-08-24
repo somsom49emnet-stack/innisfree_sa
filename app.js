@@ -1075,6 +1075,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Custom Plugin to Draw ROAS Percentage Data Labels over Line Data Points
+  const roasLabelPlugin = {
+    id: 'roasLabelPlugin',
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      chart.data.datasets.forEach((dataset, index) => {
+        if (dataset.label && dataset.label.includes('ROAS')) {
+          const meta = chart.getDatasetMeta(index);
+          if (meta && !meta.hidden) {
+            meta.data.forEach((element, dataIndex) => {
+              const val = dataset.data[dataIndex];
+              if (val !== undefined && val !== null) {
+                ctx.save();
+                ctx.fillStyle = dataset.borderColor || '#d97706';
+                ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(val + '%', element.x, element.y - 8);
+                ctx.restore();
+              }
+            });
+          }
+        }
+      });
+    }
+  };
+
   // Render Top Charts (ALWAYS Month Total for Selected Month)
   const renderCharts = (monthOnlyGroups) => {
     // 1. Overview Dual-Axis Chart
@@ -1113,7 +1140,8 @@ document.addEventListener('DOMContentLoaded', () => {
             y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '만' } },
             y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
           }
-        }
+        },
+        plugins: [roasLabelPlugin]
       });
     }
 
@@ -1176,7 +1204,8 @@ document.addEventListener('DOMContentLoaded', () => {
             y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '만' } },
             y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
           }
-        }
+        },
+        plugins: [roasLabelPlugin]
       });
     }
 
@@ -1192,6 +1221,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const spLabels = Object.keys(spWeeklyMap).sort();
     const spRevs = spLabels.map(l => spWeeklyMap[l].Rev);
     const spCosts = spLabels.map(l => spWeeklyMap[l].CostNoVat);
+    const spRoases = spLabels.map(l => spWeeklyMap[l].CostNoVat > 0 ? Math.round((spWeeklyMap[l].Rev / spWeeklyMap[l].CostNoVat) * 100) : 0);
 
     if (charts.shopping) charts.shopping.destroy();
     const ctxSp = document.getElementById('chartShoppingWeekly');
@@ -1201,15 +1231,22 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
           labels: spLabels,
           datasets: [
-            { label: '전환매출액 (원)', data: spRevs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1 },
-            { label: '총광고비 (VAT제외)', data: spCosts, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1 }
+            { label: '전환매출액 (원)', data: spRevs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
+            { label: '총광고비 (VAT제외)', data: spCosts, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1, yAxisID: 'y' },
+            { label: 'ROAS (%)', data: spRoases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
           ]
         },
         options: {
           responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
           plugins: { legend: { labels: { color: '#111827' } } },
-          scales: { x: { ticks: { color: '#4b5563' } }, y: { ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '만' } } }
-        }
+          scales: {
+            x: { ticks: { color: '#4b5563' } },
+            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '만' } },
+            y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
+          }
+        },
+        plugins: [roasLabelPlugin]
       });
     }
 
@@ -1247,7 +1284,8 @@ document.addEventListener('DOMContentLoaded', () => {
             y: { position: 'left', ticks: { color: '#4b5563' } },
             y1: { position: 'right', ticks: { color: '#059669', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
           }
-        }
+        },
+        plugins: [roasLabelPlugin]
       });
     }
   };
