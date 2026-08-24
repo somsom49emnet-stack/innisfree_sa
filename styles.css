@@ -690,115 +690,178 @@ tr.summary-shaded-row td {
   color: var(--text-dim);
 }
 
-/* Password Protection Overlay Modal */
+/* Password Protection Overlay Modal - Luxury Forest Glassmorphism */
 #passwordModalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(135deg, #002813 0%, #006633 50%, #0b4021 100%);
+  background: radial-gradient(circle at 50% 35%, #04381e 0%, #011d0e 65%, #000c05 100%);
   z-index: 999999;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+
+.password-bg-glow {
+  position: absolute;
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(0, 0, 0, 0) 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: pulseGlow 6s ease-in-out infinite alternate;
+}
+
+@keyframes pulseGlow {
+  0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.9; }
 }
 
 .password-card {
-  background: #ffffff;
+  position: relative;
+  background: rgba(255, 255, 255, 0.96);
   width: 90%;
-  max-width: 400px;
-  padding: 40px 32px;
-  border-radius: 20px;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  max-width: 410px;
+  padding: 44px 36px;
+  border-radius: 24px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.25);
   text-align: center;
-  animation: pwdCardAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: pwdCardAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(20px);
 }
 
 @keyframes pwdCardAppear {
-  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  from { opacity: 0; transform: scale(0.94) translateY(20px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.password-badge {
-  display: inline-block;
-  background: #e6f4ea;
+.password-brand-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.password-brand-logo .brand-text {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
   color: #006633;
-  font-weight: 700;
-  font-size: 13px;
-  padding: 6px 16px;
-  border-radius: 20px;
-  margin-bottom: 16px;
+  line-height: 1;
 }
 
-.password-card h2 {
-  color: #111827;
-  font-size: 22px;
+.password-brand-logo .brand-sub {
+  font-size: 10.5px;
   font-weight: 800;
-  margin: 0 0 8px 0;
+  letter-spacing: 3px;
+  color: #059669;
+  margin-top: 6px;
+  text-transform: uppercase;
 }
 
-.password-card p {
+.password-header h2 {
+  color: #111827;
+  font-size: 21px;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.5px;
+}
+
+.password-header p {
   color: #6b7280;
-  font-size: 14px;
-  margin: 0 0 24px 0;
+  font-size: 13.5px;
+  margin: 0 0 28px 0;
   line-height: 1.5;
 }
 
-.password-input-group {
-  margin-bottom: 16px;
+.password-input-wrapper {
+  position: relative;
+  margin-bottom: 18px;
 }
 
-.password-input-group input {
+.password-input-wrapper .input-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.password-input-wrapper input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 15px 16px 15px 44px;
   font-size: 16px;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  background: #f9fafb;
+  border-radius: 14px;
   outline: none;
   box-sizing: border-box;
-  transition: all 0.2s ease;
-  text-align: center;
-  letter-spacing: 1px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #111827;
+  font-weight: 600;
 }
 
-.password-input-group input:focus {
+.password-input-wrapper input:focus {
   border-color: #006633;
-  box-shadow: 0 0 0 4px rgba(0, 102, 51, 0.1);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(0, 102, 51, 0.12);
 }
 
 .password-btn {
   width: 100%;
-  padding: 14px;
+  padding: 15px;
   font-size: 16px;
   font-weight: 700;
   color: #ffffff;
-  background: #006633;
+  background: linear-gradient(135deg, #006633 0%, #004d26 100%);
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
-  box-shadow: 0 4px 12px rgba(0, 102, 51, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 6px 18px rgba(0, 102, 51, 0.3);
 }
 
 .password-btn:hover {
-  background: #004d26;
+  background: linear-gradient(135deg, #007a3d 0%, #00592c 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 102, 51, 0.4);
 }
 
 .password-btn:active {
-  transform: scale(0.98);
+  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0, 102, 51, 0.2);
 }
 
 .password-error {
   margin-top: 14px;
-  color: #dc2626;
+  color: #b91c1c;
   font-weight: 700;
   font-size: 13px;
   display: none;
   background: #fef2f2;
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
   border: 1px solid #fecaca;
+  animation: shakeError 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
+
+@keyframes shakeError {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
 
