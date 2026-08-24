@@ -51,6 +51,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let shoppingActiveChips = new Set();
   let newproductActiveChips = new Set();
 
+  let powerlinkAdGroupDevice = 'ALL';
+  let powerlinkTop10Device = 'ALL';
+  let powerlinkKwDevice = 'ALL';
+
+  const getDeviceType = (item) => {
+    if (!item) return 'PC';
+    const cName = (item.Campaign || '').toUpperCase();
+    if (cName.includes('MO') || cName.includes('모바일') || cName.includes('MOBILE')) {
+      return 'MO';
+    }
+    return 'PC';
+  };
+
   let powerlinkTopCategory = 'Revenue'; // Revenue, Roas, LowRoas
   let powerlinkGrowthCategory = 'wow'; // wow, mom
   let charts = {};
@@ -536,8 +549,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.querySelector('#tablePowerlinkAdGroupCat tbody');
     const chipContainer = document.getElementById('powerlinkAdGroupChips');
 
+    let filtered = plGroups;
+    if (powerlinkAdGroupDevice !== 'ALL') {
+      filtered = filtered.filter(g => getDeviceType(g) === powerlinkAdGroupDevice);
+    }
+
     const catMap = {};
-    plGroups.forEach(g => {
+    filtered.forEach(g => {
       const cat = g.AdGroupCat || '미지정';
       if (!catMap[cat]) {
         catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
@@ -602,6 +620,18 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   };
+
+  // Event Listener for Powerlink AdGroup Device Filter Buttons
+  const adgroupDevBtns = document.querySelectorAll('#adgroupDeviceGroup .subtab-btn');
+  adgroupDevBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      adgroupDevBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      powerlinkAdGroupDevice = btn.getAttribute('data-device');
+      const plGroups = filterList(getData().groups.filter(g => g.CampaignType === '파워링크'));
+      renderPowerlinkAdGroupCats(plGroups);
+    });
+  });
 
   // Powerlink Search Type Chips Filter
   const renderPowerlinkSearchTypeChips = (plKwList) => {
@@ -741,17 +771,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.querySelector('#tablePowerlinkKwTop10 tbody');
     if (!tbody) return;
 
+    let filtered = plKeywords;
+    if (powerlinkTop10Device !== 'ALL') {
+      filtered = filtered.filter(k => getDeviceType(k) === powerlinkTop10Device);
+    }
+
     const kwMap = {};
-    plKeywords.forEach(k => {
-      const kw = k.Keyword;
-      if (!kwMap[kw]) {
-        kwMap[kw] = { Keyword: kw, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+    filtered.forEach(k => {
+      const dev = getDeviceType(k);
+      const key = k.Keyword + '|' + dev;
+      if (!kwMap[key]) {
+        kwMap[key] = { Keyword: k.Keyword, Device: dev, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
       }
-      kwMap[kw].Imp += k.Imp || 0;
-      kwMap[kw].Clk += k.Clk || 0;
-      kwMap[kw].CostNoVat += k.CostNoVat || 0;
-      kwMap[kw].Conv += k.Conv || 0;
-      kwMap[kw].Revenue += k.Revenue || 0;
+      kwMap[key].Imp += k.Imp || 0;
+      kwMap[key].Clk += k.Clk || 0;
+      kwMap[key].CostNoVat += k.CostNoVat || 0;
+      kwMap[key].Conv += k.Conv || 0;
+      kwMap[key].Revenue += k.Revenue || 0;
     });
 
     let list = Object.values(kwMap);
@@ -788,6 +824,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <tr>
           <td><strong>#${idx + 1}</strong></td>
           <td><strong>${k.Keyword}</strong></td>
+          <td><span class="kpi-badge">${k.Device}</span></td>
           <td class="number-col">${fmtNum(k.Imp)}</td>
           <td class="number-col">${fmtNum(k.Clk)}</td>
           <td class="number-col">${fmtPct(ctr)}</td>
@@ -801,16 +838,28 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
 
-    tbody.innerHTML = html || `<tr><td colspan="11" style="text-align:center;">데이터 없음</td></tr>`;
+    tbody.innerHTML = html || `<tr><td colspan="12" style="text-align:center;">데이터 없음</td></tr>`;
   };
 
-  // Top 10 Subtab Event Listeners
+  // Top 10 Category Subtab Event Listeners
   const top10Btns = document.querySelectorAll('#kwTop10Group .subtab-btn');
   top10Btns.forEach(btn => {
     btn.addEventListener('click', () => {
       top10Btns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       powerlinkTopCategory = btn.getAttribute('data-top');
+      const filteredKw = filterList(getData().keywords.filter(k => k.CampaignType === '파워링크'));
+      renderPowerlinkTop10Kw(filteredKw);
+    });
+  });
+
+  // Top 10 Device Subtab Event Listeners
+  const top10DevBtns = document.querySelectorAll('#kwTop10DeviceGroup .subtab-btn');
+  top10DevBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      top10DevBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      powerlinkTop10Device = btn.getAttribute('data-device');
       const filteredKw = filterList(getData().keywords.filter(k => k.CampaignType === '파워링크'));
       renderPowerlinkTop10Kw(filteredKw);
     });
@@ -824,11 +873,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const plKeywords = rawData.keywords.filter(k => k.CampaignType === '파워링크');
     
-    // Filter to Top 30 Spend Keywords
+    // Filter to Top 30 Spend Keywords (Keyword + Device)
     const totalKwSpend = {};
     plKeywords.forEach(k => {
-      if (!totalKwSpend[k.Keyword]) totalKwSpend[k.Keyword] = 0;
-      totalKwSpend[k.Keyword] += k.CostNoVat || 0;
+      const dev = getDeviceType(k);
+      const key = k.Keyword + '|' + dev;
+      if (!totalKwSpend[key]) totalKwSpend[key] = 0;
+      totalKwSpend[key] += k.CostNoVat || 0;
     });
 
     const top30KwSet = new Set(
@@ -846,16 +897,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const prevWeek = latestIdx > 0 ? allWeeks[latestIdx - 1] : null;
 
       plKeywords.forEach(k => {
-        if (!top30KwSet.has(k.Keyword)) return;
+        const dev = getDeviceType(k);
+        const key = k.Keyword + '|' + dev;
+        if (!top30KwSet.has(key)) return;
+
         if (k.Week === latestWeek) {
-          if (!kwCurMap[k.Keyword]) kwCurMap[k.Keyword] = { Keyword: k.Keyword, CostNoVat: 0, Revenue: 0 };
-          kwCurMap[k.Keyword].CostNoVat += k.CostNoVat || 0;
-          kwCurMap[k.Keyword].Revenue += k.Revenue || 0;
+          if (!kwCurMap[key]) kwCurMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
+          kwCurMap[key].CostNoVat += k.CostNoVat || 0;
+          kwCurMap[key].Revenue += k.Revenue || 0;
         }
         if (prevWeek && k.Week === prevWeek) {
-          if (!kwPrevMap[k.Keyword]) kwPrevMap[k.Keyword] = { Keyword: k.Keyword, CostNoVat: 0, Revenue: 0 };
-          kwPrevMap[k.Keyword].CostNoVat += k.CostNoVat || 0;
-          kwPrevMap[k.Keyword].Revenue += k.Revenue || 0;
+          if (!kwPrevMap[key]) kwPrevMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
+          kwPrevMap[key].CostNoVat += k.CostNoVat || 0;
+          kwPrevMap[key].Revenue += k.Revenue || 0;
         }
       });
     } else {
@@ -863,31 +917,34 @@ document.addEventListener('DOMContentLoaded', () => {
       const prevM = curM > 1 ? curM - 1 : 12;
 
       plKeywords.forEach(k => {
-        if (!top30KwSet.has(k.Keyword)) return;
+        const dev = getDeviceType(k);
+        const key = k.Keyword + '|' + dev;
+        if (!top30KwSet.has(key)) return;
+
         if (String(k.Month) === String(curM)) {
-          if (!kwCurMap[k.Keyword]) kwCurMap[k.Keyword] = { Keyword: k.Keyword, CostNoVat: 0, Revenue: 0 };
-          kwCurMap[k.Keyword].CostNoVat += k.CostNoVat || 0;
-          kwCurMap[k.Keyword].Revenue += k.Revenue || 0;
+          if (!kwCurMap[key]) kwCurMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
+          kwCurMap[key].CostNoVat += k.CostNoVat || 0;
+          kwCurMap[key].Revenue += k.Revenue || 0;
         }
         if (String(k.Month) === String(prevM)) {
-          if (!kwPrevMap[k.Keyword]) kwPrevMap[k.Keyword] = { Keyword: k.Keyword, CostNoVat: 0, Revenue: 0 };
-          kwPrevMap[k.Keyword].CostNoVat += k.CostNoVat || 0;
-          kwPrevMap[k.Keyword].Revenue += k.Revenue || 0;
+          if (!kwPrevMap[key]) kwPrevMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
+          kwPrevMap[key].CostNoVat += k.CostNoVat || 0;
+          kwPrevMap[key].Revenue += k.Revenue || 0;
         }
       });
     }
 
     const growthList = [];
-    Object.keys(kwCurMap).forEach(kw => {
-      const cur = kwCurMap[kw];
-      const prev = kwPrevMap[kw];
+    Object.keys(kwCurMap).forEach(key => {
+      const cur = kwCurMap[key];
+      const prev = kwPrevMap[key];
 
       const curRoas = cur.CostNoVat > 0 ? (cur.Revenue / cur.CostNoVat) * 100 : 0;
       const prevRoas = prev && prev.CostNoVat > 0 ? (prev.Revenue / prev.CostNoVat) * 100 : 0;
       const diff = curRoas - prevRoas;
 
       growthList.push({
-        Keyword: kw, CurRoas: curRoas, PrevRoas: prevRoas, Diff: diff, CostNoVat: cur.CostNoVat, Revenue: cur.Revenue
+        Keyword: cur.Keyword, Device: cur.Device, CurRoas: curRoas, PrevRoas: prevRoas, Diff: diff, CostNoVat: cur.CostNoVat, Revenue: cur.Revenue
       });
     });
 
@@ -896,6 +953,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <tr>
         <td><strong>#${idx + 1}</strong></td>
         <td><strong>${item.Keyword}</strong></td>
+        <td><span class="kpi-badge">${item.Device}</span></td>
         <td class="number-col">${fmtRoas(item.CurRoas)}</td>
         <td class="number-col">${fmtRoas(item.PrevRoas)}</td>
         <td class="number-col">${getDiffBadge(item.Diff)}</td>
@@ -903,13 +961,14 @@ document.addEventListener('DOMContentLoaded', () => {
         <td class="number-col">${fmtCurr(item.Revenue)}</td>
       </tr>
     `).join('');
-    tbodyUp.innerHTML = htmlUp || `<tr><td colspan="7" style="text-align:center;">데이터 없음</td></tr>`;
+    tbodyUp.innerHTML = htmlUp || `<tr><td colspan="8" style="text-align:center;">데이터 없음</td></tr>`;
 
     const downList = growthList.filter(item => item.Diff < 0).sort((a, b) => a.Diff - b.Diff).slice(0, 10);
     const htmlDown = downList.map((item, idx) => `
       <tr>
         <td><strong>#${idx + 1}</strong></td>
         <td><strong>${item.Keyword}</strong></td>
+        <td><span class="kpi-badge">${item.Device}</span></td>
         <td class="number-col">${fmtRoas(item.CurRoas)}</td>
         <td class="number-col">${fmtRoas(item.PrevRoas)}</td>
         <td class="number-col">${getDiffBadge(item.Diff)}</td>
@@ -917,7 +976,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td class="number-col">${fmtCurr(item.Revenue)}</td>
       </tr>
     `).join('');
-    tbodyDown.innerHTML = htmlDown || `<tr><td colspan="7" style="text-align:center;">데이터 없음</td></tr>`;
+    tbodyDown.innerHTML = htmlDown || `<tr><td colspan="8" style="text-align:center;">데이터 없음</td></tr>`;
   };
 
   // Growth Subtab Event Listeners
@@ -1484,7 +1543,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPowerlinkTop10Kw(plKw);
     renderPowerlinkKwGrowthSplit(getData());
 
-    // 6. Bottom Powerlink Keywords Table with Chip Filter, SearchType Filter & Dupe Combination
+    // 6. Bottom Powerlink Keywords Table with Chip Filter, SearchType Filter, Device Filter & Dupe Combination
     updatePowerlinkKwTable = setupTable({
       tableId: 'tablePowerlinkKw',
       searchId: 'searchPowerlinkKw',
@@ -1500,18 +1559,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (powerlinkActiveSearchTypes.size > 0) {
           plList = plList.filter(k => powerlinkActiveSearchTypes.has(k.SearchType));
         }
-        // Combine duplicate keyword names
+        if (powerlinkKwDevice !== 'ALL') {
+          plList = plList.filter(k => getDeviceType(k) === powerlinkKwDevice);
+        }
+        // Combine duplicate keyword names (per Keyword + Device)
         const combined = {};
         plList.forEach(k => {
-          const kw = k.Keyword;
-          if (!combined[kw]) {
-            combined[kw] = { Keyword: kw, SearchType: k.SearchType || '-', Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+          const dev = getDeviceType(k);
+          const kwKey = k.Keyword + '|' + dev;
+          if (!combined[kwKey]) {
+            combined[kwKey] = { Keyword: k.Keyword, Device: dev, SearchType: k.SearchType || '-', Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
           }
-          combined[kw].Imp += k.Imp || 0;
-          combined[kw].Clk += k.Clk || 0;
-          combined[kw].CostNoVat += k.CostNoVat || 0;
-          combined[kw].Conv += k.Conv || 0;
-          combined[kw].Revenue += k.Revenue || 0;
+          combined[kwKey].Imp += k.Imp || 0;
+          combined[kwKey].Clk += k.Clk || 0;
+          combined[kwKey].CostNoVat += k.CostNoVat || 0;
+          combined[kwKey].Conv += k.Conv || 0;
+          combined[kwKey].Revenue += k.Revenue || 0;
         });
         return Object.values(combined);
       },
@@ -1524,6 +1587,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
           <tr>
             <td><strong>${k.Keyword}</strong></td>
+            <td><span class="kpi-badge">${k.Device || '-'}</span></td>
             <td><span class="kpi-badge">${k.SearchType || '-'}</span></td>
             <td class="number-col">${fmtNum(k.Imp)}</td>
             <td class="number-col">${fmtNum(k.Clk)}</td>
@@ -1539,6 +1603,17 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     updatePowerlinkKwTable();
+
+    // Event Listeners for Powerlink Keywords Device Filter
+    const kwDevBtns = document.querySelectorAll('#powerlinkKwDeviceGroup .subtab-btn');
+    kwDevBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        kwDevBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        powerlinkKwDevice = btn.getAttribute('data-device');
+        updatePowerlinkKwTable();
+      });
+    });
 
     // 7. Shopping AdGroup Categories & Chip Filters
     const spGroups = filteredGroups.filter(g => g.CampaignType === '쇼핑검색');

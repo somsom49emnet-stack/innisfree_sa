@@ -293,8 +293,15 @@
       <!-- 파워링크 '광고그룹'별 성과 데이터 표 -->
       <section class="card">
         <div class="card-header">
-          <h3 class="card-title">🏷️ 파워링크 '광고그룹'별 성과 데이터 표</h3>
-          <p class="card-subtitle">광고그룹별 광고비, 매출액, ROAS, 객단가 비교</p>
+          <div>
+            <h3 class="card-title">🏷️ 파워링크 '광고그룹'별 성과 데이터 표</h3>
+            <p class="card-subtitle">광고그룹별 광고비, 매출액, ROAS, 객단가 비교</p>
+          </div>
+          <div class="subtab-group" id="adgroupDeviceGroup">
+            <button class="subtab-btn active" data-device="ALL">전체 (PC+MO)</button>
+            <button class="subtab-btn" data-device="PC">💻 PC</button>
+            <button class="subtab-btn" data-device="MO">📱 MO</button>
+          </div>
         </div>
         <div class="table-container">
           <table id="tablePowerlinkAdGroupCat">
@@ -347,15 +354,22 @@
 
       <!-- TOP 10 키워드 분석 (매출액 TOP10 / 광고비 상위 20개 기준 ROAS TOP10 / ROAS 저효율 TOP10) -->
       <section class="card">
-        <div class="card-header">
+        <div class="card-header" style="flex-wrap: wrap; gap: 10px;">
           <div>
             <h3 class="card-title">🥇 필터날짜 기준 TOP 10 키워드 분석</h3>
             <p class="card-subtitle">※ ROAS TOP 10: 광고비 상위 20개 키워드 기준 | ROAS 저효율 TOP 10: ROAS 500% 미만 키워드 (광고비 내림차순)</p>
           </div>
-          <div class="subtab-group" id="kwTop10Group">
-            <button class="subtab-btn active" data-top="Revenue">💰 매출액 TOP 10</button>
-            <button class="subtab-btn" data-top="Roas">📈 ROAS TOP 10 (광고비 상위 20)</button>
-            <button class="subtab-btn" data-top="LowRoas">⚠️ ROAS 저효율 TOP 10 (ROAS < 500%)</button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <div class="subtab-group" id="kwTop10DeviceGroup">
+              <button class="subtab-btn active" data-device="ALL">전체 기기</button>
+              <button class="subtab-btn" data-device="PC">💻 PC</button>
+              <button class="subtab-btn" data-device="MO">📱 MO</button>
+            </div>
+            <div class="subtab-group" id="kwTop10Group">
+              <button class="subtab-btn active" data-top="Revenue">💰 매출액 TOP 10</button>
+              <button class="subtab-btn" data-top="Roas">📈 ROAS TOP 10 (광고비 상위 20)</button>
+              <button class="subtab-btn" data-top="LowRoas">⚠️ ROAS 저효율 TOP 10 (ROAS &lt; 500%)</button>
+            </div>
           </div>
         </div>
         <div class="table-container">
@@ -364,6 +378,7 @@
               <tr>
                 <th>순위</th>
                 <th>키워드 (검색어)</th>
+                <th>기기</th>
                 <th class="number-col">노출수</th>
                 <th class="number-col">클릭수</th>
                 <th class="number-col">CTR (%)</th>
@@ -402,6 +417,7 @@
                   <tr>
                     <th>순위</th>
                     <th>키워드</th>
+                    <th>기기</th>
                     <th class="number-col">현재 ROAS (%)</th>
                     <th class="number-col">이전 ROAS (%)</th>
                     <th class="number-col">증가폭 (%p)</th>
@@ -425,6 +441,7 @@
                   <tr>
                     <th>순위</th>
                     <th>키워드</th>
+                    <th>기기</th>
                     <th class="number-col">현재 ROAS (%)</th>
                     <th class="number-col">이전 ROAS (%)</th>
                     <th class="number-col">감소폭 (%p)</th>
@@ -471,6 +488,18 @@
           </div>
         </div>
 
+        <!-- Interactive Subtab Buttons for Powerlink Device Filter -->
+        <div class="chip-filter-section" style="margin-top: 12px;">
+          <div class="chip-filter-title">
+            <span>💻📱 '기기 (PC / MO)' 필터 선택:</span>
+          </div>
+          <div class="subtab-group" id="powerlinkKwDeviceGroup" style="width: fit-content;">
+            <button class="subtab-btn active" data-device="ALL">전체 (PC+MO)</button>
+            <button class="subtab-btn" data-device="PC">💻 PC</button>
+            <button class="subtab-btn" data-device="MO">📱 MO (모바일)</button>
+          </div>
+        </div>
+
         <div class="table-controls">
           <input type="text" id="searchPowerlinkKw" class="search-input" placeholder="키워드 검색..." />
           <span class="card-subtitle" id="countPowerlinkKw">총 0개 키워드</span>
@@ -480,6 +509,7 @@
             <thead>
               <tr>
                 <th class="sortable" data-sort="Keyword">키워드</th>
+                <th class="sortable" data-sort="Device">기기</th>
                 <th class="sortable" data-sort="SearchType">검색유형</th>
                 <th class="sortable number-col" data-sort="Imp">노출수</th>
                 <th class="sortable number-col" data-sort="Clk">클릭수</th>
