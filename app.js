@@ -1075,7 +1075,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  // Custom Plugin to Draw ROAS Percentage Data Labels over Line Data Points
+  // Helper: Draw Canvas Rounded Rectangle Badge
+  const drawRoundedRect = (ctx, x, y, width, height, radius, fillColor, strokeColor) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+    if (fillColor) {
+      ctx.fillStyle = fillColor;
+      ctx.fill();
+    }
+    if (strokeColor) {
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
+
+  // Custom Plugin to Draw High-Visibility ROAS Badge Boxes over Line Data Points
   const roasLabelPlugin = {
     id: 'roasLabelPlugin',
     afterDatasetsDraw(chart) {
@@ -1087,12 +1113,29 @@ document.addEventListener('DOMContentLoaded', () => {
             meta.data.forEach((element, dataIndex) => {
               const val = dataset.data[dataIndex];
               if (val !== undefined && val !== null) {
+                const text = val + '%';
                 ctx.save();
-                ctx.fillStyle = dataset.borderColor || '#d97706';
-                ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                const textWidth = ctx.measureText(text).width;
+                const boxWidth = textWidth + 12;
+                const boxHeight = 18;
+                const boxX = element.x - boxWidth / 2;
+                const boxY = element.y - 24;
+
+                // Soft shadow for depth
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+                ctx.shadowBlur = 4;
+                ctx.shadowOffsetY = 2;
+
+                const bgCol = dataset.borderColor || '#d97706';
+                drawRoundedRect(ctx, boxX, boxY, boxWidth, boxHeight, 4, bgCol, '#ffffff');
+
+                // White text centered inside badge box
+                ctx.shadowColor = 'transparent';
+                ctx.fillStyle = '#ffffff';
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                ctx.fillText(val + '%', element.x, element.y - 8);
+                ctx.textBaseline = 'middle';
+                ctx.fillText(text, element.x, boxY + boxHeight / 2 + 0.5);
                 ctx.restore();
               }
             });
