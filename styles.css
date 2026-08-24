@@ -690,14 +690,14 @@ tr.summary-shaded-row td {
   color: var(--text-dim);
 }
 
-/* Password Protection Overlay Modal - Luxury Forest Glassmorphism */
+/* Password Protection Overlay Modal - Clean Minimal White Theme */
 #passwordModalOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: radial-gradient(circle at 50% 35%, #04381e 0%, #011d0e 65%, #000c05 100%);
+  background: linear-gradient(135deg, #f8faf9 0%, #edf4f0 50%, #f1f5f3 100%);
   z-index: 999999;
   display: flex;
   align-items: center;
@@ -707,9 +707,9 @@ tr.summary-shaded-row td {
 
 .password-bg-glow {
   position: absolute;
-  width: 550px;
-  height: 550px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(0, 0, 0, 0) 70%);
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(0, 102, 51, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -724,19 +724,19 @@ tr.summary-shaded-row td {
 
 .password-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.96);
+  background: #ffffff;
   width: 90%;
   max-width: 410px;
   padding: 44px 36px;
   border-radius: 24px;
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.25);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
   text-align: center;
   animation: pwdCardAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  backdrop-filter: blur(20px);
 }
 
 @keyframes pwdCardAppear {
-  from { opacity: 0; transform: scale(0.94) translateY(20px); }
+  from { opacity: 0; transform: scale(0.95) translateY(16px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
@@ -766,7 +766,7 @@ tr.summary-shaded-row td {
 }
 
 .password-header h2 {
-  color: #111827;
+  color: #0f172a;
   font-size: 21px;
   font-weight: 800;
   margin: 0 0 6px 0;
@@ -774,7 +774,7 @@ tr.summary-shaded-row td {
 }
 
 .password-header p {
-  color: #6b7280;
+  color: #64748b;
   font-size: 13.5px;
   margin: 0 0 28px 0;
   line-height: 1.5;
@@ -782,7 +782,7 @@ tr.summary-shaded-row td {
 
 .password-input-wrapper {
   position: relative;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .password-input-wrapper .input-icon {
@@ -799,20 +799,20 @@ tr.summary-shaded-row td {
   width: 100%;
   padding: 15px 16px 15px 44px;
   font-size: 16px;
-  border: 2px solid #e5e7eb;
-  background: #f9fafb;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
   border-radius: 14px;
   outline: none;
   box-sizing: border-box;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #111827;
+  color: #0f172a;
   font-weight: 600;
 }
 
 .password-input-wrapper input:focus {
   border-color: #006633;
   background: #ffffff;
-  box-shadow: 0 0 0 4px rgba(0, 102, 51, 0.12);
+  box-shadow: 0 0 0 4px rgba(0, 102, 51, 0.1);
 }
 
 .password-btn {
@@ -820,9 +820,9 @@ tr.summary-shaded-row td {
   padding: 15px;
   font-size: 16px;
   font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #006633 0%, #004d26 100%);
-  border: none;
+  color: #006633;
+  background: #ffffff;
+  border: 2px solid #006633;
   border-radius: 14px;
   cursor: pointer;
   display: flex;
@@ -830,18 +830,28 @@ tr.summary-shaded-row td {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 6px 18px rgba(0, 102, 51, 0.3);
+  box-shadow: 0 4px 14px rgba(0, 102, 51, 0.12);
+}
+
+.password-btn svg {
+  stroke: #006633;
+  transition: stroke 0.2s ease;
 }
 
 .password-btn:hover {
-  background: linear-gradient(135deg, #007a3d 0%, #00592c 100%);
+  background: #006633;
+  color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0, 102, 51, 0.4);
+  box-shadow: 0 8px 22px rgba(0, 102, 51, 0.25);
+}
+
+.password-btn:hover svg {
+  stroke: #ffffff;
 }
 
 .password-btn:active {
   transform: translateY(0);
-  box-shadow: 0 4px 12px rgba(0, 102, 51, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 102, 51, 0.15);
 }
 
 .password-error {
@@ -863,5 +873,6 @@ tr.summary-shaded-row td {
   30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
   40%, 60% { transform: translate3d(4px, 0, 0); }
 }
+
 
 
