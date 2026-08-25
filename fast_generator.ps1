@@ -12,8 +12,9 @@ using System.Xml;
 public class FastAggregator {
     public class WeeklyItem {
         public string Month { get; set; }
-        public string CampaignType { get; set; }
         public string Week { get; set; }
+        public string DateStr { get; set; }
+        public string CampaignType { get; set; }
         public string Campaign { get; set; }
         public string AdGroupCat { get; set; }
         public double Imp { get; set; }
@@ -27,6 +28,7 @@ public class FastAggregator {
     public class KwItem {
         public string Month { get; set; }
         public string Week { get; set; }
+        public string DateStr { get; set; }
         public string CampaignType { get; set; }
         public string Campaign { get; set; }
         public string AdGroupCat { get; set; }
@@ -43,6 +45,7 @@ public class FastAggregator {
     public class ProdItem {
         public string Month { get; set; }
         public string Week { get; set; }
+        public string DateStr { get; set; }
         public string CampaignType { get; set; }
         public string Campaign { get; set; }
         public string AdGroupCat { get; set; }
@@ -83,6 +86,7 @@ public class FastAggregator {
             Dictionary<string, ProdItem> prodDict = new Dictionary<string, ProdItem>();
             HashSet<string> months = new HashSet<string>();
             HashSet<string> weeks = new HashSet<string>();
+            HashSet<string> dates = new HashSet<string>();
             HashSet<string> adGroupCats = new HashSet<string>();
 
             string newProdStr = "\uC2E0\uC81C\uD488"; // "신제품"
@@ -118,6 +122,8 @@ public class FastAggregator {
                         } else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "row") {
                             if (rowNum > 1) {
                                 string month = GetVal(rowCells, 1);
+                                string rawDate = GetVal(rowCells, 2);
+                                string dateStr = ParseDate(rawDate);
                                 string week = GetVal(rowCells, 3);
                                 string ctype = GetVal(rowCells, 4);
                                 string campaign = GetVal(rowCells, 5);
@@ -135,12 +141,13 @@ public class FastAggregator {
 
                                 if (!string.IsNullOrEmpty(month)) months.Add(month);
                                 if (!string.IsNullOrEmpty(week)) weeks.Add(week);
+                                if (!string.IsNullOrEmpty(dateStr)) dates.Add(dateStr);
                                 if (!string.IsNullOrEmpty(adGroupCat)) adGroupCats.Add(adGroupCat);
 
-                                string gKey = month + "|" + ctype + "|" + week + "|" + campaign + "|" + adGroupCat;
+                                string gKey = month + "|" + week + "|" + dateStr + "|" + ctype + "|" + campaign + "|" + adGroupCat;
                                 WeeklyItem wi;
                                 if (!groupDict.TryGetValue(gKey, out wi)) {
-                                    wi = new WeeklyItem { Month = month, CampaignType = ctype, Week = week, Campaign = campaign, AdGroupCat = adGroupCat };
+                                    wi = new WeeklyItem { Month = month, Week = week, DateStr = dateStr, CampaignType = ctype, Campaign = campaign, AdGroupCat = adGroupCat };
                                     groupDict[gKey] = wi;
                                 }
                                 wi.Imp += imp; wi.Clk += clk; wi.CostVat += costVat; wi.CostNoVat += costNoVat; wi.Conv += conv; wi.Revenue += rev;
@@ -182,6 +189,8 @@ public class FastAggregator {
                         } else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "row") {
                             if (rowNum > 1) {
                                 string month = GetVal(rowCells, 1);
+                                string rawDate = GetVal(rowCells, 2);
+                                string dateStr = ParseDate(rawDate);
                                 string week = GetVal(rowCells, 3);
                                 string ctype = GetVal(rowCells, 4);
                                 string campaign = GetVal(rowCells, 5);
@@ -200,10 +209,10 @@ public class FastAggregator {
                                 }
 
                                 if (!string.IsNullOrEmpty(kw) && (imp > 0 || clk > 0 || costNoVat > 0 || conv > 0 || rev > 0)) {
-                                    string kKey = month + "|" + week + "|" + ctype + "|" + campaign + "|" + adGroupCat + "|" + kw + "|" + searchType;
+                                    string kKey = month + "|" + week + "|" + dateStr + "|" + ctype + "|" + campaign + "|" + adGroupCat + "|" + kw + "|" + searchType;
                                     KwItem ki;
                                     if (!kwDict.TryGetValue(kKey, out ki)) {
-                                        ki = new KwItem { Month = month, Week = week, CampaignType = ctype, Campaign = campaign, AdGroupCat = adGroupCat, Keyword = kw, SearchType = searchType };
+                                        ki = new KwItem { Month = month, Week = week, DateStr = dateStr, CampaignType = ctype, Campaign = campaign, AdGroupCat = adGroupCat, Keyword = kw, SearchType = searchType };
                                         kwDict[kKey] = ki;
                                     }
                                     ki.Imp += imp; ki.Clk += clk; ki.CostVat += costVat; ki.CostNoVat += costNoVat; ki.Conv += conv; ki.Revenue += rev;
@@ -246,6 +255,8 @@ public class FastAggregator {
                         } else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "row") {
                             if (rowNum > 1) {
                                 string month = GetVal(rowCells, 1);
+                                string rawDate = GetVal(rowCells, 2);
+                                string dateStr = ParseDate(rawDate);
                                 string week = GetVal(rowCells, 3);
                                 string ctype = GetVal(rowCells, 4);
                                 string campaign = GetVal(rowCells, 5);
@@ -264,10 +275,10 @@ public class FastAggregator {
                                 }
 
                                 if (!string.IsNullOrEmpty(prodName) && (imp > 0 || clk > 0 || costNoVat > 0 || conv > 0 || rev > 0)) {
-                                    string pKey = month + "|" + week + "|" + ctype + "|" + campaign + "|" + adGroupCat + "|" + prodName;
+                                    string pKey = month + "|" + week + "|" + dateStr + "|" + ctype + "|" + campaign + "|" + adGroupCat + "|" + prodName;
                                     ProdItem pi;
                                     if (!prodDict.TryGetValue(pKey, out pi)) {
-                                        pi = new ProdItem { Month = month, Week = week, CampaignType = ctype, Campaign = campaign, AdGroupCat = adGroupCat, ProductName = prodName, SojaeId = sojaeId };
+                                        pi = new ProdItem { Month = month, Week = week, DateStr = dateStr, CampaignType = ctype, Campaign = campaign, AdGroupCat = adGroupCat, ProductName = prodName, SojaeId = sojaeId };
                                         prodDict[pKey] = pi;
                                     }
                                     pi.Imp += imp; pi.Clk += clk; pi.CostVat += costVat; pi.CostNoVat += costNoVat; pi.Conv += conv; pi.Revenue += rev;
@@ -283,6 +294,7 @@ public class FastAggregator {
             var sb = new StringBuilder();
             sb.Append("{\"months\":[").Append(string.Join(",", QuoteAll(months))).Append("],");
             sb.Append("\"weeks\":[").Append(string.Join(",", QuoteAll(weeks))).Append("],");
+            sb.Append("\"dates\":[").Append(string.Join(",", QuoteAll(dates))).Append("],");
             sb.Append("\"adGroupCats\":[").Append(string.Join(",", QuoteAll(adGroupCats))).Append("],");
 
             // Groups
@@ -292,6 +304,7 @@ public class FastAggregator {
                 if (cnt > 0) sb.Append(",");
                 sb.Append("{\"m\":\"").Append(Escape(kv.Month))
                   .Append("\",\"w\":\"").Append(Escape(kv.Week))
+                  .Append("\",\"dt\":\"").Append(Escape(kv.DateStr))
                   .Append("\",\"ct\":\"").Append(Escape(kv.CampaignType))
                   .Append("\",\"c\":\"").Append(Escape(kv.Campaign))
                   .Append("\",\"ag\":\"").Append(Escape(kv.AdGroupCat)).Append("\"");
@@ -313,6 +326,7 @@ public class FastAggregator {
                 if (cnt > 0) sb.Append(",");
                 sb.Append("{\"m\":\"").Append(Escape(kv.Month))
                   .Append("\",\"w\":\"").Append(Escape(kv.Week))
+                  .Append("\",\"dt\":\"").Append(Escape(kv.DateStr))
                   .Append("\",\"ct\":\"").Append(Escape(kv.CampaignType))
                   .Append("\",\"c\":\"").Append(Escape(kv.Campaign))
                   .Append("\",\"ag\":\"").Append(Escape(kv.AdGroupCat))
@@ -337,6 +351,7 @@ public class FastAggregator {
                 if (cnt > 0) sb.Append(",");
                 sb.Append("{\"m\":\"").Append(Escape(kv.Month))
                   .Append("\",\"w\":\"").Append(Escape(kv.Week))
+                  .Append("\",\"dt\":\"").Append(Escape(kv.DateStr))
                   .Append("\",\"ct\":\"").Append(Escape(kv.CampaignType))
                   .Append("\",\"c\":\"").Append(Escape(kv.Campaign))
                   .Append("\",\"ag\":\"").Append(Escape(kv.AdGroupCat))
@@ -357,6 +372,20 @@ public class FastAggregator {
             File.WriteAllText(outJsonPath, jsonResult, Encoding.UTF8);
             File.WriteAllText(outJsPath, "const DASHBOARD_DATA=" + jsonResult + ";", Encoding.UTF8);
         }
+    }
+
+    private static string ParseDate(string valStr) {
+        if (string.IsNullOrEmpty(valStr)) return "";
+        double d;
+        if (double.TryParse(valStr, out d)) {
+            if (d > 30000 && d < 60000) {
+                try {
+                    DateTime dt = DateTime.FromOADate(d);
+                    return dt.ToString("yyyy-MM-dd");
+                } catch {}
+            }
+        }
+        return valStr;
     }
 
     private static int GetColIdx(string cellRef) {
@@ -404,8 +433,8 @@ $excelPath = Join-Path $PSScriptRoot "RAW2.xlsx"
 $jsonPath = Join-Path $PSScriptRoot "dashboard_data.json"
 $jsPath = Join-Path $PSScriptRoot "dashboard_data.js"
 
-Write-Host "Running zero-omitted compact generator for RAW2.xlsx with SearchType..."
+Write-Host "Running daily-aggregated fast generator for RAW2.xlsx with DateStr..."
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 [FastAggregator]::ProcessExcel($excelPath, $jsonPath, $jsPath)
 $sw.Stop()
-Write-Host "Finished processing RAW2.xlsx in $($sw.Elapsed.TotalSeconds) seconds!"
+Write-Host "Finished processing RAW2.xlsx with DateStr in $($sw.Elapsed.TotalSeconds) seconds!"

@@ -86,6 +86,15 @@
             </select>
           </div>
         </div>
+
+        <div class="filter-group">
+          <span class="filter-label">📅 일자 선택:</span>
+          <div class="select-wrapper">
+            <select id="dateSelect">
+              <option value="ALL" selected>전체 일자 (All Days)</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -189,8 +198,7 @@
       <!-- 설정월 주차별 성과데이터 표 (월 전체 주차 표시 고정) -->
       <section class="card" style="margin-top: 28px;">
         <div class="card-header">
-          <h3 class="card-title">📅 설정월 주차별 성과 데이터 표 (월 전체 주차 고정 표출)</h3>
-          <p class="card-subtitle">선택 월 전체(강조) 및 주차별 세부 실적 (객단가 지표 포함)</p>
+          <h3 class="card-title">📅 개요 주차별 성과 데이터 표 (선택월 전체 고정)</h3>
         </div>
         <div class="table-container">
           <table id="tableWeeklyDataOverview">
@@ -233,6 +241,30 @@
                 <th class="number-col">ROAS (%)</th>
                 <th class="number-col">전주 대비 ROAS (WoW)</th>
                 <th class="number-col">전월 대비 ROAS (MoM)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+      <!-- 전체 개요 일자별 성과 데이터 표 (신규 추가) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">📆 전체 광고 일자별 성과 데이터 표</h3>
+          <p class="card-subtitle">일자별 광고비, 매출액, ROAS, 객단가 비교</p>
+        </div>
+        <div class="table-container">
+          <table id="tableDailyOverview">
+            <thead>
+              <tr>
+                <th>일자</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
                 <th class="number-col">객단가 (원)</th>
                 <th class="number-col">CPC (원)</th>
               </tr>
@@ -534,6 +566,33 @@
         </div>
       </section>
 
+      <!-- 파워링크 일자별 성과 데이터 표 (신규 추가) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">📆 파워링크 일자별 성과 데이터 표</h3>
+          <p class="card-subtitle">일자별 광고비, 매출액, ROAS, 객단가 비교</p>
+        </div>
+        <div class="table-container">
+          <table id="tablePowerlinkDaily">
+            <thead>
+              <tr>
+                <th>일자</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
     </div>
 
     <!-- TAB 3: SHOPPING SEARCH (쇼핑검색) -->
@@ -712,6 +771,33 @@
           </div>
         </div>
       </section>
+
+      <!-- 쇼핑검색 일자별 성과 데이터 표 (신규 추가) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">📆 쇼핑검색 일자별 성과 데이터 표</h3>
+          <p class="card-subtitle">일자별 광고비, 매출액, ROAS, 객단가 비교</p>
+        </div>
+        <div class="table-container">
+          <table id="tableShoppingDaily">
+            <thead>
+              <tr>
+                <th>일자</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
     <!-- TAB 4: NEW PRODUCT SEARCH (신제품검색) -->
@@ -831,6 +917,33 @@
             <button class="pagination-btn" id="prevNewproductKw">이전</button>
             <button class="pagination-btn" id="nextNewproductKw">다음</button>
           </div>
+        </div>
+      </section>
+
+      <!-- 신제품검색 일자별 성과 데이터 표 (신규 추가) -->
+      <section class="card">
+        <div class="card-header">
+          <h3 class="card-title">📆 신제품검색 일자별 성과 데이터 표</h3>
+          <p class="card-subtitle">일자별 광고비, 매출액, ROAS, 객단가 비교</p>
+        </div>
+        <div class="table-container">
+          <table id="tableNewproductDaily">
+            <thead>
+              <tr>
+                <th>일자</th>
+                <th class="number-col">노출수</th>
+                <th class="number-col">클릭수</th>
+                <th class="number-col">CTR (%)</th>
+                <th class="number-col">총 광고비 (VAT제외, 원)</th>
+                <th class="number-col">전환수</th>
+                <th class="number-col">전환매출액 (원)</th>
+                <th class="number-col">ROAS (%)</th>
+                <th class="number-col">객단가 (원)</th>
+                <th class="number-col">CPC (원)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
       </section>
     </div>

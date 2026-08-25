@@ -44,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentMonth = '8';
   let currentWeek = 'ALL';
+  let currentDate = 'ALL';
   let activeTab = 'tab-overview';
   
   let powerlinkActiveChips = new Set();
@@ -62,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const getDeviceType = (item) => {
     if (!item) return 'PC';
     const cName = (item.Campaign || '').toUpperCase();
-    if (cName.includes('MO') || cName.includes('모바일') || cName.includes('MOBILE')) {
+    if (cName.includes('MO') || cName.includes('紐⑤컮??) || cName.includes('MOBILE')) {
       return 'MO';
     }
     return 'PC';
@@ -74,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Formatter Helpers
   const fmtNum = (v) => Math.round(v || 0).toLocaleString('ko-KR');
-  const fmtCurr = (v) => Math.round(v || 0).toLocaleString('ko-KR') + '원';
+  const fmtCurr = (v) => Math.round(v || 0).toLocaleString('ko-KR') + '??;
   const fmtPct = (v) => (v || 0).toFixed(2) + '%';
   const fmtRoas = (v) => (v || 0).toFixed(1) + '%';
 
@@ -86,20 +87,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const getDiffBadge = (diffVal) => {
     if (diffVal > 0) {
-      return `<span class="diff-badge diff-up">▲ +${diffVal.toFixed(1)}%p</span>`;
+      return `<span class="diff-badge diff-up">??+${diffVal.toFixed(1)}%p</span>`;
     } else if (diffVal < 0) {
-      return `<span class="diff-badge diff-down">▼ ${Math.abs(diffVal).toFixed(1)}%p</span>`;
+      return `<span class="diff-badge diff-down">??${Math.abs(diffVal).toFixed(1)}%p</span>`;
     } else {
       return `<span class="diff-badge diff-neutral">- 0.0%p</span>`;
     }
   };
 
-  // Standardize Data Items (Map short keys m, ct, w, c, ag, kw, pn, sid, i, cl, cvat, cnovat, cv, r)
+  // Standardize Data Items (Map short keys m, ct, w, dt, c, ag, kw, pn, sid, i, cl, cvat, cnovat, cv, r)
   const normalizeItem = (item) => {
     if (!item) return {};
     return {
       Month: item.Month || item.m || '',
       Week: item.Week || item.w || '',
+      Date: item.Date || item.dt || '',
       CampaignType: item.CampaignType || item.ct || '',
       Campaign: item.Campaign || item.c || '',
       AdGroupCat: item.AdGroupCat || item.ag || '',
@@ -159,6 +161,30 @@ document.addEventListener('DOMContentLoaded', () => {
     weekSelect.innerHTML = html;
   };
 
+  // Populate Date Selector Options
+  const updateDateOptions = () => {
+    const raw = getData();
+    const dateSelect = document.getElementById('dateSelect');
+    if (!dateSelect) return;
+
+    let availableDates = new Set();
+    const sourceList = raw.groups.length > 0 ? raw.groups : raw.keywords;
+    
+    sourceList.forEach(item => {
+      if (currentMonth !== 'ALL' && String(item.Month) !== String(currentMonth)) return;
+      if (currentWeek !== 'ALL' && String(item.Week) !== String(currentWeek)) return;
+      if (item.Date) availableDates.add(item.Date);
+    });
+
+    const sortedDates = Array.from(availableDates).sort();
+    
+    let html = `<option value="ALL" ${currentDate === 'ALL' ? 'selected' : ''}>전체 일자 (All Days)</option>`;
+    sortedDates.forEach(d => {
+      html += `<option value="${d}" ${currentDate === d ? 'selected' : ''}>${d}</option>`;
+    });
+    dateSelect.innerHTML = html;
+  };
+
   // Filter Functions
   const filterByMonthOnly = (list) => {
     return list.filter(item => {
@@ -171,6 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return list.filter(item => {
       if (currentMonth !== 'ALL' && String(item.Month) !== String(currentMonth)) return false;
       if (currentWeek !== 'ALL' && String(item.Week) !== String(currentWeek)) return false;
+      if (currentDate !== 'ALL' && String(item.Date) !== String(currentDate)) return false;
       return true;
     });
   };
@@ -182,7 +209,9 @@ document.addEventListener('DOMContentLoaded', () => {
     monthSelect.addEventListener('change', (e) => {
       currentMonth = e.target.value;
       currentWeek = 'ALL';
+      currentDate = 'ALL';
       updateWeekOptions();
+      updateDateOptions();
       updateDashboard();
     });
   }
@@ -191,6 +220,16 @@ document.addEventListener('DOMContentLoaded', () => {
   if (weekSelect) {
     weekSelect.addEventListener('change', (e) => {
       currentWeek = e.target.value;
+      currentDate = 'ALL';
+      updateDateOptions();
+      updateDashboard();
+    });
+  }
+
+  const dateSelect = document.getElementById('dateSelect');
+  if (dateSelect) {
+    dateSelect.addEventListener('change', (e) => {
+      currentDate = e.target.value;
       updateDashboard();
     });
   }
@@ -217,17 +256,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Render Top KPI Summary Cards (Dynamic per Active Tab!)
   const renderTabSpecificKPIs = (filteredGroups) => {
     let targetGroups = filteredGroups;
-    let badgeText = '전체 캠페인';
+    let badgeText = '?꾩껜 罹좏럹??;
 
     if (activeTab === 'tab-powerlink') {
-      targetGroups = filteredGroups.filter(g => g.CampaignType === '파워링크');
-      badgeText = '파워링크 전용';
+      targetGroups = filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕');
+      badgeText = '?뚯썙留곹겕 ?꾩슜';
     } else if (activeTab === 'tab-shopping') {
-      targetGroups = filteredGroups.filter(g => g.CampaignType === '쇼핑검색');
-      badgeText = '쇼핑검색 전용';
+      targetGroups = filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'?쇳븨寃???꾩슜';
     } else if (activeTab === 'tab-newproduct') {
-      targetGroups = filteredGroups.filter(g => g.CampaignType === '신제품검색');
-      badgeText = '신제품검색 전용';
+      targetGroups = filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'?좎젣?덇????꾩슜';
     }
 
     let costNoVat = 0, costVat = 0, rev = 0, conv = 0, clk = 0, imp = 0;
@@ -252,17 +289,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('kpiTotalCostNoVat').innerText = fmtCurr(costNoVat);
     document.getElementById('kpiCostVat').innerText = fmtCurr(costVat);
     document.getElementById('kpiTotalRevenue').innerText = fmtCurr(rev);
-    document.getElementById('kpiTotalConv').innerText = fmtNum(conv) + '건';
+    document.getElementById('kpiTotalConv').innerText = fmtNum(conv) + '嫄?;
     document.getElementById('kpiRoas').innerText = fmtRoas(roas);
     document.getElementById('kpiAov').innerText = fmtCurr(aov);
-    document.getElementById('kpiTotalClicks').innerText = fmtNum(clk) + '회';
+    document.getElementById('kpiTotalClicks').innerText = fmtNum(clk) + '??;
     document.getElementById('kpiCtr').innerText = fmtPct(ctr);
     document.getElementById('kpiCpc').innerText = fmtCurr(cpc);
   };
 
   // Render Insights Comments
   const renderAllTabInsights = (allGroups) => {
-    const filterText = currentMonth === 'ALL' ? '전체 기간' : `${currentMonth}월 ${currentWeek === 'ALL' ? '전체' : currentWeek}`;
+    const filterText = currentMonth === 'ALL' ? '?꾩껜 湲곌컙' : `${currentMonth}??${currentWeek === 'ALL' ? '?꾩껜' : currentWeek}`;
 
     // 1. Overview Insights
     const ovBox = document.getElementById('overviewInsightList');
@@ -286,20 +323,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
       ovBox.innerHTML = `
         <div class="insight-item positive">
-          <h4>📊 1. [${filterText}] 전체 성과 요약</h4>
-          <p>총 광고비(VAT제외) <strong>${fmtCurr(costSum)}</strong> 집행, 총 전환매출액 <strong>${fmtCurr(revSum)}</strong> 달성으로 평균 ROAS <strong>${fmtRoas(totalRoas)}</strong>의 견고한 효율을 기록했습니다.</p>
+          <h4>?뱤 1. [${filterText}] ?꾩껜 ?깃낵 ?붿빟</h4>
+          <p>珥?愿묎퀬鍮?VAT?쒖쇅) <strong>${fmtCurr(costSum)}</strong> 吏묓뻾, 珥??꾪솚留ㅼ텧??<strong>${fmtCurr(revSum)}</strong> ?ъ꽦?쇰줈 ?됯퇏 ROAS <strong>${fmtRoas(totalRoas)}</strong>??寃ш퀬???⑥쑉??湲곕줉?덉뒿?덈떎.</p>
         </div>
         <div class="insight-item info">
-          <h4>📅 2. 주차별 성과 요약</h4>
-          <p>8월 1주차 프로모션 기획전 특수로 ROAS 1,000% 이상 폭발적 성과를 거두었으며, 2~3주차에도 주차별 1.5억~2억대 안정적 매출선 유지 중입니다.</p>
+          <h4>?뱟 2. 二쇱감蹂??깃낵 ?붿빟</h4>
+          <p>8??1二쇱감 ?꾨줈紐⑥뀡 湲고쉷???뱀닔濡?ROAS 1,000% ?댁긽 ??컻???깃낵瑜?嫄곕몢?덉쑝硫? 2~3二쇱감?먮룄 二쇱감蹂?1.5??2?듬? ?덉젙??留ㅼ텧???좎? 以묒엯?덈떎.</p>
         </div>
         <div class="insight-item warning">
-          <h4>🏢 3. 그룹별 성과 요약</h4>
-          <p>자사명 브랜딩 그룹(ROAS 1,200%+) 및 카테고리 대표 상품군(선케어/파우더)이 전체 매출 및 효율 성장의 대부분을 형성하고 있습니다.</p>
+          <h4>?룫 3. 洹몃９蹂??깃낵 ?붿빟</h4>
+          <p>?먯궗紐?釉뚮옖??洹몃９(ROAS 1,200%+) 諛?移댄뀒怨좊━ ????곹뭹援??좎????뚯슦?????꾩껜 留ㅼ텧 諛??⑥쑉 ?깆옣???遺遺꾩쓣 ?뺤꽦?섍퀬 ?덉뒿?덈떎.</p>
         </div>
         <div class="insight-item positive">
-          <h4>🚀 4. 매출 & ROAS 견인 요약</h4>
-          <p>쇼핑검색 대표 상품 <strong>이니스프리 선크림 / 파우더 더블기획</strong> 소재 및 파워링크 <strong>[이니스프리]</strong> 자사명 키워드가 성장의 핵심 모멘텀입니다.</p>
+          <h4>?? 4. 留ㅼ텧 & ROAS 寃ъ씤 ?붿빟</h4>
+          <p>?쇳븨寃??????곹뭹 <strong>?대땲?ㅽ봽由??좏겕由?/ ?뚯슦???붾툝湲고쉷</strong> ?뚯옱 諛??뚯썙留곹겕 <strong>[?대땲?ㅽ봽由?</strong> ?먯궗紐??ㅼ썙?쒓? ?깆옣???듭떖 紐⑤찘??낅땲??</p>
         </div>
       `;
     }
@@ -307,27 +344,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Powerlink Insights
     const plBox = document.getElementById('powerlinkInsightList');
     if (plBox) {
-      const plGroups = allGroups.filter(g => g.CampaignType === '파워링크');
+      const plGroups = allGroups.filter(g => g.CampaignType === '?뚯썙留곹겕');
       let plCost = 0, plRev = 0;
       plGroups.forEach(g => { plCost += g.CostNoVat || 0; plRev += g.Revenue || 0; });
       const plRoas = plCost > 0 ? (plRev / plCost) * 100 : 0;
 
       plBox.innerHTML = `
         <div class="insight-item positive">
-          <h4>📊 1. [${filterText}] 파워링크 전체 성과 요약</h4>
-          <p>파워링크 광고비 <strong>${fmtCurr(plCost)}</strong> 투입으로 매출액 <strong>${fmtCurr(plRev)}</strong>, ROAS <strong>${fmtRoas(plRoas)}</strong> 달성.</p>
+          <h4>?뱤 1. [${filterText}] ?뚯썙留곹겕 ?꾩껜 ?깃낵 ?붿빟</h4>
+          <p>?뚯썙留곹겕 愿묎퀬鍮?<strong>${fmtCurr(plCost)}</strong> ?ъ엯?쇰줈 留ㅼ텧??<strong>${fmtCurr(plRev)}</strong>, ROAS <strong>${fmtRoas(plRoas)}</strong> ?ъ꽦.</p>
         </div>
         <div class="insight-item info">
-          <h4>📅 2. 주차별 성과 요약</h4>
-          <p>주차별 광고비 소진 대비 ROAS 400%~520% 수준을 꾸준히 유지하며 검색 유입 고객의 구매 전환율을 방어하고 있습니다.</p>
+          <h4>?뱟 2. 二쇱감蹂??깃낵 ?붿빟</h4>
+          <p>二쇱감蹂?愿묎퀬鍮??뚯쭊 ?鍮?ROAS 400%~520% ?섏???袁몄????좎??섎ŉ 寃???좎엯 怨좉컼??援щℓ ?꾪솚?⑥쓣 諛⑹뼱?섍퀬 ?덉뒿?덈떎.</p>
         </div>
         <div class="insight-item warning">
-          <h4>🏢 3. 그룹별 성과 요약 (자사명 vs 제품군)</h4>
-          <p>[자사명] 그룹이 ROAS 1,000% 이상으로 압도적이며, [제품군/일반키워드] 그룹은 인지 및 탐색 확장 레이어 역할을 수행 중입니다.</p>
+          <h4>?룫 3. 洹몃９蹂??깃낵 ?붿빟 (?먯궗紐?vs ?쒗뭹援?</h4>
+          <p>[?먯궗紐? 洹몃９??ROAS 1,000% ?댁긽?쇰줈 ?뺣룄?곸씠硫? [?쒗뭹援??쇰컲?ㅼ썙?? 洹몃９? ?몄? 諛??먯깋 ?뺤옣 ?덉씠????븷???섑뻾 以묒엯?덈떎.</p>
         </div>
         <div class="insight-item positive">
-          <h4>🚀 4. 매출 & ROAS 견인 키워드 요약</h4>
-          <p>매출 견인 1위: <strong>[이니스프리]</strong> | ROAS 견인 1위: <strong>[이니스프리 노세범]</strong> (저효율 키워드 입찰가 튜닝 필요).</p>
+          <h4>?? 4. 留ㅼ텧 & ROAS 寃ъ씤 ?ㅼ썙???붿빟</h4>
+          <p>留ㅼ텧 寃ъ씤 1?? <strong>[?대땲?ㅽ봽由?</strong> | ROAS 寃ъ씤 1?? <strong>[?대땲?ㅽ봽由??몄꽭踰?</strong> (??⑥쑉 ?ㅼ썙???낆같媛 ?쒕떇 ?꾩슂).</p>
         </div>
       `;
     }
@@ -335,69 +372,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Shopping Insights
     const spBox = document.getElementById('shoppingInsightList');
     if (spBox) {
-      const spGroups = allGroups.filter(g => g.CampaignType === '쇼핑검색');
-      let spCost = 0, spRev = 0;
-      spGroups.forEach(g => { spCost += g.CostNoVat || 0; spRev += g.Revenue || 0; });
-      const spRoas = spCost > 0 ? (spRev / spCost) * 100 : 0;
-
-      spBox.innerHTML = `
-        <div class="insight-item positive">
-          <h4>📊 1. [${filterText}] 쇼핑검색 전체 성과 요약</h4>
-          <p>쇼핑검색 광고비 <strong>${fmtCurr(spCost)}</strong>로 총 <strong>${fmtCurr(spRev)}</strong>의 매출을 창출 (전체 매출의 98% 담당, ROAS <strong>${fmtRoas(spRoas)}</strong>).</p>
-        </div>
-        <div class="insight-item info">
-          <h4>📅 2. 주차별 성과 요약</h4>
-          <p>8월 1주차 딜 프로모션 주간에 ROAS 1,000%를 돌파하였으며, 2~3주차에도 높은 딜 반응도가 지속되고 있습니다.</p>
-        </div>
-        <div class="insight-item warning">
-          <h4>🏢 3. 그룹별 성과 요약</h4>
-          <p>[1_카테고리_선케어] 및 [B.자사명] 그룹이 세일즈 볼륨의 85% 이상을 상회하며 핵심 라인업으로 안착.</p>
-        </div>
-        <div class="insight-item positive">
-          <h4>🚀 4. 매출 & ROAS 견인 상품 요약</h4>
-          <p>매출 견인 1위: <strong>이니스프리 히알루론 수분 선크림 50ml 더블기획</strong> (단일 상품 매출 최고치 달성).</p>
-        </div>
-      `;
-    }
-
-    // 4. NewProduct Insights
-    const npBox = document.getElementById('newproductInsightList');
+      const spGroups = allGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'newproductInsightList');
     if (npBox) {
-      const npGroups = allGroups.filter(g => g.CampaignType === '신제품검색');
-      let npClk = 0;
-      npGroups.forEach(g => { npClk += g.Clk || 0; });
-
-      npBox.innerHTML = `
-        <div class="insight-item positive">
-          <h4>📊 1. [${filterText}] 신제품검색 전체 성과 요약</h4>
-          <p>신제품 론칭 라인업 총 클릭수 <strong>${fmtNum(npClk)}회</strong> 확보로 브랜드 신규 아이템 탐색 모멘텀 형성.</p>
-        </div>
-        <div class="insight-item info">
-          <h4>📅 2. 주차별 성과 요약</h4>
-          <p>주차별 CTR 4.2% ~ 5.4% 수준의 독보적 타겟 반응률을 나타내며 타겟 유입 효율 극대화.</p>
-        </div>
-        <div class="insight-item warning">
-          <h4>🏢 3. 그룹별 성과 요약 (자외선차단제 등 포함)</h4>
-          <p>[자외선차단제] 및 신제품 대표 라인업 그룹이 관심 수요를 집중 수용 중입니다.</p>
-        </div>
-        <div class="insight-item positive">
-          <h4>🚀 4. 매출 & ROAS 견인 키워드 요약</h4>
-          <p>신제품 메인 타겟 키워드 <strong>[신제품 선크림], [이니스프리 자외선차단제]</strong>가 신규 시드 유입을 완벽히 견인 중입니다.</p>
-        </div>
-      `;
-    }
-  };
-
-  // Helper to Aggregate Weekly Data for Table Below Chart (FIXED TO MONTH TOTAL)
-  const renderWeeklyTableBelowChart = (tableId, monthOnlyGroups) => {
-    const tbody = document.querySelector(`#${tableId} tbody`);
-    if (!tbody) return;
-
-    const weekMap = {};
-    let totalImp = 0, totalClk = 0, totalCostNoVat = 0, totalConv = 0, totalRev = 0;
-
-    monthOnlyGroups.forEach(w => {
-      const wKey = w.Week || '기타';
+      const npGroups = allGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'湲고?';
       if (!weekMap[wKey]) {
         weekMap[wKey] = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
       }
@@ -414,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
       totalRev += w.Revenue || 0;
     });
 
-    const mTitle = currentMonth === 'ALL' ? '전체' : `${currentMonth}월`;
+    const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
     const totalCtr = totalImp > 0 ? (totalClk / totalImp) * 100 : 0;
     const totalRoas = totalCostNoVat > 0 ? (totalRev / totalCostNoVat) * 100 : 0;
     const totalAov = totalConv > 0 ? totalRev / totalConv : 0;
@@ -422,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let html = `
       <tr class="highlight-row">
-        <td>🌿 ${mTitle} 전체</td>
+        <td>?뙼 ${mTitle} ?꾩껜</td>
         <td class="number-col">${fmtNum(totalImp)}</td>
         <td class="number-col">${fmtNum(totalClk)}</td>
         <td class="number-col">${fmtPct(totalCtr)}</td>
@@ -467,7 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbody = document.querySelector('#tableCampaignTypeOverview tbody');
     if (!tbody) return;
 
-    const ctypes = ['쇼핑검색', '파워링크', '신제품검색'];
+    const ctypes = ['?쇳븨寃??, '?뚯썙留곹겕', '?좎젣?덇???];
     const currentStats = {};
     ctypes.forEach(ct => { currentStats[ct] = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 }; });
 
@@ -560,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const catMap = {};
     filtered.forEach(g => {
-      const cat = g.AdGroupCat || '미지정';
+      const cat = g.AdGroupCat || '誘몄???;
       if (!catMap[cat]) {
         catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
       }
@@ -595,12 +572,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </tr>
         `;
       }).join('');
-      tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;">데이터 없음</td></tr>`;
+      tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
     }
 
     if (chipContainer) {
       const allBtnClass = powerlinkActiveChips.size === 0 ? 'chip-btn active' : 'chip-btn';
-      let chipsHtml = `<button class="${allBtnClass}" data-cat="ALL">전체 보기 (${catList.length})</button>`;
+      let chipsHtml = `<button class="${allBtnClass}" data-cat="ALL">?꾩껜 蹂닿린 (${catList.length})</button>`;
 
       catList.forEach(c => {
         const isActive = powerlinkActiveChips.has(c.Cat) ? 'chip-btn active' : 'chip-btn';
@@ -632,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
       adgroupDevBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       powerlinkAdGroupDevice = btn.getAttribute('data-device');
-      const plGroups = filterList(getData().groups.filter(g => g.CampaignType === '파워링크'));
+      const plGroups = filterList(getData().groups.filter(g => g.CampaignType === '?뚯썙留곹겕'));
       renderPowerlinkAdGroupCats(plGroups);
     });
   });
@@ -649,7 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const typeList = Array.from(typeSet).sort();
     const allBtnClass = powerlinkActiveSearchTypes.size === 0 ? 'chip-btn active' : 'chip-btn';
-    let chipsHtml = `<button class="${allBtnClass}" data-type="ALL">전체 유형 보기</button>`;
+    let chipsHtml = `<button class="${allBtnClass}" data-type="ALL">?꾩껜 ?좏삎 蹂닿린</button>`;
 
     typeList.forEach(t => {
       const isActive = powerlinkActiveSearchTypes.has(t) ? 'chip-btn active' : 'chip-btn';
@@ -683,7 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let totalMo = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
 
     plGroups.forEach(g => {
-      const cName = g.Campaign || '미지정';
+      const cName = g.Campaign || '誘몄???;
       if (!campMap[cName]) {
         campMap[cName] = { Campaign: cName, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
       }
@@ -693,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
       campMap[cName].Conv += g.Conv || 0;
       campMap[cName].Revenue += g.Revenue || 0;
 
-      const isMo = cName.toUpperCase().includes('MO') || cName.includes('모바일');
+      const isMo = cName.toUpperCase().includes('MO') || cName.includes('紐⑤컮??);
       if (isMo) {
         totalMo.Imp += g.Imp || 0; totalMo.Clk += g.Clk || 0; totalMo.CostNoVat += g.CostNoVat || 0; totalMo.Conv += g.Conv || 0; totalMo.Revenue += g.Revenue || 0;
       } else {
@@ -715,8 +692,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let html = `
       <tr class="summary-shaded-row">
-        <td><span class="tag-mo">전체 MO 요약</span></td>
-        <td><strong>모바일(MO) 캠페인 전체 합계</strong></td>
+        <td><span class="tag-mo">?꾩껜 MO ?붿빟</span></td>
+        <td><strong>紐⑤컮??MO) 罹좏럹???꾩껜 ?⑷퀎</strong></td>
         <td class="number-col">${fmtNum(totalMo.Imp)}</td>
         <td class="number-col">${fmtNum(totalMo.Clk)}</td>
         <td class="number-col">${fmtPct(moCtr)}</td>
@@ -728,8 +705,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <td class="number-col">${fmtCurr(moCpc)}</td>
       </tr>
       <tr class="summary-shaded-row">
-        <td><span class="tag-pc">전체 PC 요약</span></td>
-        <td><strong>PC 캠페인 전체 합계</strong></td>
+        <td><span class="tag-pc">?꾩껜 PC ?붿빟</span></td>
+        <td><strong>PC 罹좏럹???꾩껜 ?⑷퀎</strong></td>
         <td class="number-col">${fmtNum(totalPc.Imp)}</td>
         <td class="number-col">${fmtNum(totalPc.Clk)}</td>
         <td class="number-col">${fmtPct(pcCtr)}</td>
@@ -743,7 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
 
     html += list.map(item => {
-      const isMo = item.Campaign.toUpperCase().includes('MO') || item.Campaign.includes('모바일');
+      const isMo = item.Campaign.toUpperCase().includes('MO') || item.Campaign.includes('紐⑤컮??);
       const tag = isMo ? '<span class="tag-mo">MO</span>' : '<span class="tag-pc">PC</span>';
       const ctr = item.Imp > 0 ? (item.Clk / item.Imp) * 100 : 0;
       const roas = item.CostNoVat > 0 ? (item.Revenue / item.CostNoVat) * 100 : 0;
@@ -799,7 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (powerlinkTopCategory === 'Revenue') {
       list.sort((a, b) => b.Revenue - a.Revenue);
     } else if (powerlinkTopCategory === 'Roas') {
-      // Filter for Top 20 by Spend (광고비소진 상위 20개) as requested!
+      // Filter for Top 20 by Spend (愿묎퀬鍮꾩냼吏??곸쐞 20媛? as requested!
       list.sort((a, b) => b.CostNoVat - a.CostNoVat);
       const top20Spend = list.slice(0, 20);
       top20Spend.sort((a, b) => {
@@ -842,7 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
 
-    tbody.innerHTML = html || `<tr><td colspan="12" style="text-align:center;">데이터 없음</td></tr>`;
+    tbody.innerHTML = html || `<tr><td colspan="12" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
   };
 
   // Top 10 Category Subtab Event Listeners
@@ -852,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
       top10Btns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       powerlinkTopCategory = btn.getAttribute('data-top');
-      const filteredKw = filterList(getData().keywords.filter(k => k.CampaignType === '파워링크'));
+      const filteredKw = filterList(getData().keywords.filter(k => k.CampaignType === '?뚯썙留곹겕'));
       renderPowerlinkTop10Kw(filteredKw);
     });
   });
@@ -864,7 +841,7 @@ document.addEventListener('DOMContentLoaded', () => {
       top10DevBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       powerlinkTop10Device = btn.getAttribute('data-device');
-      const filteredKw = filterList(getData().keywords.filter(k => k.CampaignType === '파워링크'));
+      const filteredKw = filterList(getData().keywords.filter(k => k.CampaignType === '?뚯썙留곹겕'));
       renderPowerlinkTop10Kw(filteredKw);
     });
   });
@@ -875,7 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbodyDown = document.querySelector('#tablePowerlinkKwGrowthDown tbody');
     if (!tbodyUp || !tbodyDown) return;
 
-    const plKeywords = rawData.keywords.filter(k => k.CampaignType === '파워링크');
+    const plKeywords = rawData.keywords.filter(k => k.CampaignType === '?뚯썙留곹겕');
     
     // Filter to Top 30 Spend Keywords (Keyword + Device)
     const totalKwSpend = {};
@@ -965,7 +942,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td class="number-col">${fmtCurr(item.Revenue)}</td>
       </tr>
     `).join('');
-    tbodyUp.innerHTML = htmlUp || `<tr><td colspan="8" style="text-align:center;">데이터 없음</td></tr>`;
+    tbodyUp.innerHTML = htmlUp || `<tr><td colspan="8" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
 
     const downList = growthList.filter(item => item.Diff < 0).sort((a, b) => a.Diff - b.Diff).slice(0, 10);
     const htmlDown = downList.map((item, idx) => `
@@ -980,7 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td class="number-col">${fmtCurr(item.Revenue)}</td>
       </tr>
     `).join('');
-    tbodyDown.innerHTML = htmlDown || `<tr><td colspan="8" style="text-align:center;">데이터 없음</td></tr>`;
+    tbodyDown.innerHTML = htmlDown || `<tr><td colspan="8" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
   };
 
   // Growth Subtab Event Listeners
@@ -1006,7 +983,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const catMap = {};
     filtered.forEach(g => {
-      const cat = g.AdGroupCat || '미지정';
+      const cat = g.AdGroupCat || '誘몄???;
       if (!catMap[cat]) {
         catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
       }
@@ -1041,12 +1018,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </tr>
         `;
       }).join('');
-      tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;">데이터 없음</td></tr>`;
+      tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
     }
 
     if (chipContainer) {
       const allBtnClass = shoppingActiveChips.size === 0 ? 'chip-btn active' : 'chip-btn';
-      let chipsHtml = `<button class="${allBtnClass}" data-cat="ALL">전체 보기 (${catList.length})</button>`;
+      let chipsHtml = `<button class="${allBtnClass}" data-cat="ALL">?꾩껜 蹂닿린 (${catList.length})</button>`;
 
       catList.forEach(c => {
         const isActive = shoppingActiveChips.has(c.Cat) ? 'chip-btn active' : 'chip-btn';
@@ -1078,19 +1055,12 @@ document.addEventListener('DOMContentLoaded', () => {
       spAdgroupDevBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       shoppingAdGroupDevice = btn.getAttribute('data-device');
-      const spGroups = filterList(getData().groups.filter(g => g.CampaignType === '쇼핑검색'));
-      renderShoppingAdGroupCats(spGroups);
-    });
-  });
-
-  // NewProduct Tab: AdGroup Categories Performance Table & Chips Filter
-  const renderNewproductAdGroupCats = (npGroups) => {
-    const tbody = document.querySelector('#tableNewproductAdGroupCat tbody');
+      const spGroups = filterList(getData().groups.filter(g => g.CampaignType === '?뚯썙留곹겕'#tableNewproductAdGroupCat tbody');
     const chipContainer = document.getElementById('newproductAdGroupChips');
 
     const catMap = {};
     npGroups.forEach(g => {
-      const cat = g.AdGroupCat || '미지정';
+      const cat = g.AdGroupCat || '誘몄???;
       if (!catMap[cat]) {
         catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
       }
@@ -1125,12 +1095,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </tr>
         `;
       }).join('');
-      tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;">데이터 없음</td></tr>`;
+      tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
     }
 
     if (chipContainer) {
       const allBtnClass = newproductActiveChips.size === 0 ? 'chip-btn active' : 'chip-btn';
-      let chipsHtml = `<button class="${allBtnClass}" data-cat="ALL">전체 보기 (${catList.length})</button>`;
+      let chipsHtml = `<button class="${allBtnClass}" data-cat="ALL">?꾩껜 蹂닿린 (${catList.length})</button>`;
 
       catList.forEach(c => {
         const isActive = newproductActiveChips.has(c.Cat) ? 'chip-btn active' : 'chip-btn';
@@ -1230,7 +1200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Overview Dual-Axis Chart
     const weekMap = {};
     monthOnlyGroups.forEach(w => {
-      const weekLabel = w.Week || '기타';
+      const weekLabel = w.Week || '湲고?';
       if (!weekMap[weekLabel]) weekMap[weekLabel] = { CostNoVat: 0, Rev: 0 };
       weekMap[weekLabel].CostNoVat += w.CostNoVat || 0;
       weekMap[weekLabel].Rev += w.Revenue || 0;
@@ -1249,8 +1219,8 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
           labels: labels,
           datasets: [
-            { label: '전환매출액 (원)', data: revs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
-            { label: '총광고비 (VAT제외)', data: costs, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1, yAxisID: 'y' },
+            { label: '?꾪솚留ㅼ텧??(??', data: revs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
+            { label: '珥앷킅怨좊퉬 (VAT?쒖쇅)', data: costs, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1, yAxisID: 'y' },
             { label: 'ROAS (%)', data: roases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
           ]
         },
@@ -1260,7 +1230,7 @@ document.addEventListener('DOMContentLoaded', () => {
           plugins: { legend: { labels: { color: '#111827' } } },
           scales: {
             x: { ticks: { color: '#4b5563' } },
-            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '만' } },
+            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '留? } },
             y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
           }
         },
@@ -1269,7 +1239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 2. Campaign Share Donut Chart
-    let ctypeRev = { '쇼핑검색': 0, '파워링크': 0, '신제품검색': 0 };
+    let ctypeRev = { '?쇳븨寃??: 0, '?뚯썙留곹겕': 0, '?좎젣?덇???: 0 };
     monthOnlyGroups.forEach(w => {
       if (ctypeRev[w.CampaignType] !== undefined) ctypeRev[w.CampaignType] += w.Revenue || 0;
     });
@@ -1280,9 +1250,9 @@ document.addEventListener('DOMContentLoaded', () => {
       charts.share = new Chart(ctxShare, {
         type: 'doughnut',
         data: {
-          labels: ['쇼핑검색', '파워링크', '신제품검색'],
+          labels: ['?쇳븨寃??, '?뚯썙留곹겕', '?좎젣?덇???],
           datasets: [{
-            data: [ctypeRev['쇼핑검색'], ctypeRev['파워링크'], ctypeRev['신제품검색']],
+            data: [ctypeRev['?쇳븨寃??], ctypeRev['?뚯썙留곹겕'], ctypeRev['?좎젣?덇???]],
             backgroundColor: ['#059669', '#006633', '#d97706'],
             borderColor: '#ffffff'
           }]
@@ -1296,8 +1266,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 3. Powerlink Weekly Chart
     const plWeeklyMap = {};
-    monthOnlyGroups.filter(w => w.CampaignType === '파워링크').forEach(w => {
-      const wLabel = w.Week || '기타';
+    monthOnlyGroups.filter(w => w.CampaignType === '?뚯썙留곹겕').forEach(w => {
+      const wLabel = w.Week || '湲고?';
       if (!plWeeklyMap[wLabel]) plWeeklyMap[wLabel] = { CostNoVat: 0, Rev: 0 };
       plWeeklyMap[wLabel].CostNoVat += w.CostNoVat || 0;
       plWeeklyMap[wLabel].Rev += w.Revenue || 0;
@@ -1315,7 +1285,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
           labels: plLabels,
           datasets: [
-            { label: '전환매출액 (원)', data: plRevs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
+            { label: '?꾪솚留ㅼ텧??(??', data: plRevs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
             { label: 'ROAS (%)', data: plRoases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
           ]
         },
@@ -1324,7 +1294,7 @@ document.addEventListener('DOMContentLoaded', () => {
           plugins: { legend: { labels: { color: '#111827' } } },
           scales: {
             x: { ticks: { color: '#4b5563' } },
-            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '만' } },
+            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '留? } },
             y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
           }
         },
@@ -1334,8 +1304,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 4. Shopping Weekly Chart
     const spWeeklyMap = {};
-    monthOnlyGroups.filter(w => w.CampaignType === '쇼핑검색').forEach(w => {
-      const wLabel = w.Week || '기타';
+    monthOnlyGroups.filter(w => w.CampaignType === '?쇳븨寃??).forEach(w => {
+      const wLabel = w.Week || '湲고?';
       if (!spWeeklyMap[wLabel]) spWeeklyMap[wLabel] = { CostNoVat: 0, Rev: 0 };
       spWeeklyMap[wLabel].CostNoVat += w.CostNoVat || 0;
       spWeeklyMap[wLabel].Rev += w.Revenue || 0;
@@ -1354,8 +1324,8 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
           labels: spLabels,
           datasets: [
-            { label: '전환매출액 (원)', data: spRevs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
-            { label: '총광고비 (VAT제외)', data: spCosts, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1, yAxisID: 'y' },
+            { label: '?꾪솚留ㅼ텧??(??', data: spRevs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
+            { label: '珥앷킅怨좊퉬 (VAT?쒖쇅)', data: spCosts, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1, yAxisID: 'y' },
             { label: 'ROAS (%)', data: spRoases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
           ]
         },
@@ -1365,7 +1335,7 @@ document.addEventListener('DOMContentLoaded', () => {
           plugins: { legend: { labels: { color: '#111827' } } },
           scales: {
             x: { ticks: { color: '#4b5563' } },
-            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '만' } },
+            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '留? } },
             y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
           }
         },
@@ -1375,8 +1345,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 5. NewProduct Weekly Chart (Metrics: Clicks & ROAS as requested!)
     const npWeeklyMap = {};
-    monthOnlyGroups.filter(w => w.CampaignType === '신제품검색').forEach(w => {
-      const wLabel = w.Week || '기타';
+    monthOnlyGroups.filter(w => w.CampaignType === '?좎젣?덇???).forEach(w => {
+      const wLabel = w.Week || '湲고?';
       if (!npWeeklyMap[wLabel]) npWeeklyMap[wLabel] = { Clk: 0, CostNoVat: 0, Rev: 0 };
       npWeeklyMap[wLabel].Clk += w.Clk || 0;
       npWeeklyMap[wLabel].CostNoVat += w.CostNoVat || 0;
@@ -1395,7 +1365,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data: {
           labels: npLabels,
           datasets: [
-            { label: '클릭수 (회)', data: npClks, backgroundColor: 'rgba(217, 119, 6, 0.8)', borderColor: '#d97706', borderWidth: 1, yAxisID: 'y' },
+            { label: '?대┃??(??', data: npClks, backgroundColor: 'rgba(217, 119, 6, 0.8)', borderColor: '#d97706', borderWidth: 1, yAxisID: 'y' },
             { label: 'ROAS (%)', data: npRoases, type: 'line', borderColor: '#059669', backgroundColor: '#059669', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
           ]
         },
@@ -1469,7 +1439,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
       if (currentPage > totalPages) currentPage = totalPages;
 
-      if (countInfo) countInfo.innerText = `총 ${totalCount.toLocaleString()}개`;
+      if (countInfo) countInfo.innerText = `총 ${totalCount.toLocaleString()}건`;
 
       const start = (currentPage - 1) * pageSize;
       const pageData = filteredList.slice(start, start + pageSize);
@@ -1536,6 +1506,12 @@ document.addEventListener('DOMContentLoaded', () => {
     renderWeeklyTableBelowChart('tableShoppingWeekly', monthOnlyGroups.filter(g => g.CampaignType === '쇼핑검색'));
     renderWeeklyTableBelowChart('tableNewproductWeekly', monthOnlyGroups.filter(g => g.CampaignType === '신제품검색'));
 
+    // 1-2. Daily Performance Tables at Bottom of Each Tab (DYNAMIC TO FILTERS)
+    renderDailyTable('tableDailyOverview', filteredGroups);
+    renderDailyTable('tablePowerlinkDaily', filteredGroups.filter(g => g.CampaignType === '파워링크'));
+    renderDailyTable('tableShoppingDaily', filteredGroups.filter(g => g.CampaignType === '쇼핑검색'));
+    renderDailyTable('tableNewproductDaily', filteredGroups.filter(g => g.CampaignType === '신제품검색'));
+
     // 2. Overview Campaign Type Table with WoW & MoM ROAS Diff
     renderOverviewCampaignTypeTable(filteredGroups, getData());
 
@@ -1550,15 +1526,15 @@ document.addEventListener('DOMContentLoaded', () => {
       btnToggleChips.onclick = () => {
         chipBox.classList.toggle('expanded');
         if (chipBox.classList.contains('expanded')) {
-          btnToggleChips.innerText = '▲ 광고그룹 필터 접기';
+          btnToggleChips.innerText = '??愿묎퀬洹몃９ ?꾪꽣 ?묎린';
         } else {
-          btnToggleChips.innerText = '▼ 광고그룹 필터 전체보기 / 펼치기';
+          btnToggleChips.innerText = '??愿묎퀬洹몃９ ?꾪꽣 ?꾩껜蹂닿린 / ?쇱튂湲?;
         }
       };
     }
 
     // 4. Powerlink PC / MO Campaign Table with Shaded Summaries
-    renderPowerlinkDeviceTable(filteredGroups.filter(g => g.CampaignType === '파워링크'));
+    renderPowerlinkDeviceTable(filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'));
 
     // 5. Powerlink TOP 10 Keywords & Growth Keywords Split
     renderPowerlinkTop10Kw(plKw);
@@ -1573,7 +1549,7 @@ document.addEventListener('DOMContentLoaded', () => {
       prevBtnId: 'prevPowerlinkKw',
       nextBtnId: 'nextPowerlinkKw',
       getRawData: () => {
-        let plList = filteredKw.filter(k => k.CampaignType === '파워링크');
+        let plList = filteredKw.filter(k => k.CampaignType === '?뚯썙留곹겕');
         if (powerlinkActiveChips.size > 0) {
           plList = plList.filter(k => powerlinkActiveChips.has(k.AdGroupCat));
         }
@@ -1637,19 +1613,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 7. Shopping AdGroup Categories & Chip Filters
-    const spGroups = filteredGroups.filter(g => g.CampaignType === '쇼핑검색');
-    renderShoppingAdGroupCats(spGroups);
-
-    // 8. Shopping Products Table (SojaeId Removed + Device Filter)
-    updateShoppingProdTable = setupTable({
-      tableId: 'tableShoppingProd',
+    const spGroups = filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'tableShoppingProd',
       searchId: 'searchShoppingProd',
       countId: 'countShoppingProd',
       pageInfoId: 'pageInfoShoppingProd',
       prevBtnId: 'prevShoppingProd',
       nextBtnId: 'nextShoppingProd',
       getRawData: () => {
-        let list = filteredProd.filter(p => p.CampaignType === '쇼핑검색');
+        let list = filteredProd.filter(p => p.CampaignType === '?쇳븨寃??);
         if (shoppingActiveChips.size > 0) list = list.filter(p => shoppingActiveChips.has(p.AdGroupCat));
         if (shoppingProdDevice !== 'ALL') list = list.filter(p => getDeviceType(p) === shoppingProdDevice);
         return list;
@@ -1700,9 +1671,7 @@ document.addEventListener('DOMContentLoaded', () => {
       prevBtnId: 'prevShoppingKw',
       nextBtnId: 'nextShoppingKw',
       getRawData: () => {
-        let list = filteredKw.filter(k => k.CampaignType === '쇼핑검색');
-        if (shoppingActiveChips.size > 0) list = list.filter(k => shoppingActiveChips.has(k.AdGroupCat));
-        if (shoppingKwDevice !== 'ALL') list = list.filter(k => getDeviceType(k) === shoppingKwDevice);
+        let list = filteredKw.filter(k => k.CampaignType === '?뚯썙留곹겕'ALL') list = list.filter(k => getDeviceType(k) === shoppingKwDevice);
         const combined = {};
         list.forEach(k => {
           const dev = getDeviceType(k);
@@ -1754,19 +1723,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 10. NewProduct Tab: AdGroup Categories & Chips Filter
-    const npGroups = filteredGroups.filter(g => g.CampaignType === '신제품검색');
-    renderNewproductAdGroupCats(npGroups);
-
-    // 11. NewProduct Keywords Table (Combine Duplicates into 1 Row)
-    updateNewproductKwTable = setupTable({
-      tableId: 'tableNewproductKw',
+    const npGroups = filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'tableNewproductKw',
       searchId: 'searchNewproductKw',
       countId: 'countNewproductKw',
       pageInfoId: 'pageInfoNewproductKw',
       prevBtnId: 'prevNewproductKw',
       nextBtnId: 'nextNewproductKw',
       getRawData: () => {
-        let list = filteredKw.filter(k => k.CampaignType === '신제품검색' || (k.Campaign && k.Campaign.includes('신제품')));
+        let list = filteredKw.filter(k => k.CampaignType === '?뚯썙留곹겕'?좎젣??)));
         if (newproductActiveChips.size > 0) list = list.filter(k => newproductActiveChips.has(k.AdGroupCat));
         const combined = {};
         list.forEach(k => {
@@ -1820,7 +1784,60 @@ document.addEventListener('DOMContentLoaded', () => {
     initTables(monthOnlyGroups, filteredGroups, filteredKw, filteredProd);
   };
 
+  // Helper: Daily Performance Table Renderer
+  const renderDailyTable = (tableId, groups) => {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    if (!tbody) return;
+
+    const dateMap = {};
+    groups.forEach(g => {
+      const d = g.Date || '기타';
+      if (!dateMap[d]) {
+        dateMap[d] = { Date: d, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+      }
+      dateMap[d].Imp += g.Imp || 0;
+      dateMap[d].Clk += g.Clk || 0;
+      dateMap[d].CostNoVat += g.CostNoVat || 0;
+      dateMap[d].Conv += g.Conv || 0;
+      dateMap[d].Revenue += g.Revenue || 0;
+    });
+
+    const dateList = Object.values(dateMap).sort((a, b) => a.Date.localeCompare(b.Date));
+
+    if (dateList.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:24px; color:var(--text-muted);">조회된 데이터가 없습니다.</td></tr>`;
+      return;
+    }
+
+    const html = dateList.map(item => {
+      const ctr = item.Imp > 0 ? (item.Clk / item.Imp) * 100 : 0;
+      const roas = item.CostNoVat > 0 ? (item.Revenue / item.CostNoVat) * 100 : 0;
+      const aov = item.Conv > 0 ? item.Revenue / item.Conv : 0;
+      const cpc = item.Clk > 0 ? item.CostNoVat / item.Clk : 0;
+
+      return `
+        <tr>
+          <td><strong>📅 ${item.Date}</strong></td>
+          <td class="number-col">${fmtNum(item.Imp)}</td>
+          <td class="number-col">${fmtNum(item.Clk)}</td>
+          <td class="number-col">${fmtPct(ctr)}</td>
+          <td class="number-col">${fmtCurr(item.CostNoVat)}</td>
+          <td class="number-col">${fmtNum(item.Conv)}</td>
+          <td class="number-col">${fmtCurr(item.Revenue)}</td>
+          <td class="number-col"><span class="roas-badge ${getRoasBadgeClass(roas)}">${fmtRoas(roas)}</span></td>
+          <td class="number-col">${fmtCurr(aov)}</td>
+          <td class="number-col">${fmtCurr(cpc)}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = html;
+  };
+
   // Initial Execution
   updateWeekOptions();
+  updateDateOptions();
   updateDashboard();
 });
+
+
