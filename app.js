@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.style.transition = 'opacity 0.3s ease';
         setTimeout(() => { overlay.style.display = 'none'; }, 300);
       }
+      loadDataAndInit();
     } else {
       if (pwdError) pwdError.style.display = 'block';
       pwdInput.value = '';
@@ -1837,10 +1838,34 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.innerHTML = html;
   };
 
+  // Dynamic Data Loader Routine
+  const loadDataAndInit = () => {
+    if (typeof DASHBOARD_DATA !== 'undefined') {
+      updateWeekOptions();
+      updateDateOptions();
+      updateDashboard();
+      return;
+    }
+    if (document.getElementById('dashboardDataScript')) return;
+
+    const script = document.createElement('script');
+    script.id = 'dashboardDataScript';
+    script.src = 'dashboard_data.js';
+    script.onload = () => {
+      updateWeekOptions();
+      updateDateOptions();
+      updateDashboard();
+    };
+    script.onerror = () => {
+      console.error('dashboard_data.js 로드 실패');
+    };
+    document.body.appendChild(script);
+  };
+
   // Initial Execution
-  updateWeekOptions();
-  updateDateOptions();
-  updateDashboard();
+  if (checkAuth()) {
+    loadDataAndInit();
+  }
 });
 
 
