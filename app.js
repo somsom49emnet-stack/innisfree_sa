@@ -62,8 +62,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const getDeviceType = (item) => {
     if (!item) return 'PC';
+    if (item.Device) return item.Device;
+    if (item.d) return item.d;
     const cName = (item.Campaign || '').toUpperCase();
-    if (cName.includes('MO') || cName.includes('紐⑤컮??) || cName.includes('MOBILE')) {
+    if (cName.includes('MO') || cName.includes('모바일') || cName.includes('MOBILE')) {
       return 'MO';
     }
     return 'PC';
@@ -75,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Formatter Helpers
   const fmtNum = (v) => Math.round(v || 0).toLocaleString('ko-KR');
-  const fmtCurr = (v) => Math.round(v || 0).toLocaleString('ko-KR') + '??;
+  const fmtCurr = (v) => Math.round(v || 0).toLocaleString('ko-KR') + '원';
   const fmtPct = (v) => (v || 0).toFixed(2) + '%';
   const fmtRoas = (v) => (v || 0).toFixed(1) + '%';
 
@@ -87,21 +89,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const getDiffBadge = (diffVal) => {
     if (diffVal > 0) {
-      return `<span class="diff-badge diff-up">??+${diffVal.toFixed(1)}%p</span>`;
+      return `<span class="diff-badge diff-up">▲ +${diffVal.toFixed(1)}%p</span>`;
     } else if (diffVal < 0) {
-      return `<span class="diff-badge diff-down">??${Math.abs(diffVal).toFixed(1)}%p</span>`;
+      return `<span class="diff-badge diff-down">▼ -${Math.abs(diffVal).toFixed(1)}%p</span>`;
     } else {
       return `<span class="diff-badge diff-neutral">- 0.0%p</span>`;
     }
   };
 
-  // Standardize Data Items (Map short keys m, ct, w, dt, c, ag, kw, pn, sid, i, cl, cvat, cnovat, cv, r)
+  // Standardize Data Items (Map short keys m, ct, w, dt, d, c, ag, kw, pn, sid, i, cl, cvat, cnovat, cv, r)
   const normalizeItem = (item) => {
     if (!item) return {};
     return {
       Month: item.Month || item.m || '',
       Week: item.Week || item.w || '',
       Date: item.Date || item.dt || '',
+      Device: item.Device || item.d || '',
       CampaignType: item.CampaignType || item.ct || '',
       Campaign: item.Campaign || item.c || '',
       AdGroupCat: item.AdGroupCat || item.ag || '',

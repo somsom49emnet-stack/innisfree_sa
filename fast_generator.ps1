@@ -28,9 +28,8 @@ public class FastAggregator {
     public class KwItem {
         public string Month { get; set; }
         public string Week { get; set; }
-        public string DateStr { get; set; }
+        public string Device { get; set; }
         public string CampaignType { get; set; }
-        public string Campaign { get; set; }
         public string AdGroupCat { get; set; }
         public string Keyword { get; set; }
         public string SearchType { get; set; }
@@ -45,9 +44,8 @@ public class FastAggregator {
     public class ProdItem {
         public string Month { get; set; }
         public string Week { get; set; }
-        public string DateStr { get; set; }
+        public string Device { get; set; }
         public string CampaignType { get; set; }
-        public string Campaign { get; set; }
         public string AdGroupCat { get; set; }
         public string ProductName { get; set; }
         public string SojaeId { get; set; }
@@ -189,8 +187,6 @@ public class FastAggregator {
                         } else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "row") {
                             if (rowNum > 1) {
                                 string month = GetVal(rowCells, 1);
-                                string rawDate = GetVal(rowCells, 2);
-                                string dateStr = ParseDate(rawDate);
                                 string week = GetVal(rowCells, 3);
                                 string ctype = GetVal(rowCells, 4);
                                 string campaign = GetVal(rowCells, 5);
@@ -208,11 +204,17 @@ public class FastAggregator {
                                     ctype = "\uC2E0\uC81C\uD488\uAC80\uC0C9";
                                 }
 
-                                if (!string.IsNullOrEmpty(kw) && (imp > 0 || clk > 0 || costNoVat > 0 || conv > 0 || rev > 0)) {
-                                    string kKey = month + "|" + week + "|" + dateStr + "|" + ctype + "|" + campaign + "|" + adGroupCat + "|" + kw + "|" + searchType;
+                                string dev = "PC";
+                                if (!string.IsNullOrEmpty(campaign)) {
+                                    string uc = campaign.ToUpper();
+                                    if (uc.Contains("MO") || uc.Contains("\uBAA8\uBC14\uC77C") || uc.Contains("MOBILE")) dev = "MO";
+                                }
+
+                                if (!string.IsNullOrEmpty(kw) && (clk > 0 || costNoVat > 0 || conv > 0 || rev > 0 || imp >= 3)) {
+                                    string kKey = month + "|" + week + "|" + ctype + "|" + dev + "|" + adGroupCat + "|" + kw + "|" + searchType;
                                     KwItem ki;
                                     if (!kwDict.TryGetValue(kKey, out ki)) {
-                                        ki = new KwItem { Month = month, Week = week, DateStr = dateStr, CampaignType = ctype, Campaign = campaign, AdGroupCat = adGroupCat, Keyword = kw, SearchType = searchType };
+                                        ki = new KwItem { Month = month, Week = week, Device = dev, CampaignType = ctype, AdGroupCat = adGroupCat, Keyword = kw, SearchType = searchType };
                                         kwDict[kKey] = ki;
                                     }
                                     ki.Imp += imp; ki.Clk += clk; ki.CostVat += costVat; ki.CostNoVat += costNoVat; ki.Conv += conv; ki.Revenue += rev;
@@ -255,8 +257,6 @@ public class FastAggregator {
                         } else if (xr.NodeType == XmlNodeType.EndElement && xr.Name == "row") {
                             if (rowNum > 1) {
                                 string month = GetVal(rowCells, 1);
-                                string rawDate = GetVal(rowCells, 2);
-                                string dateStr = ParseDate(rawDate);
                                 string week = GetVal(rowCells, 3);
                                 string ctype = GetVal(rowCells, 4);
                                 string campaign = GetVal(rowCells, 5);
@@ -274,11 +274,17 @@ public class FastAggregator {
                                     ctype = "\uC2E0\uC81C\uD488\uAC80\uC0C9";
                                 }
 
-                                if (!string.IsNullOrEmpty(prodName) && (imp > 0 || clk > 0 || costNoVat > 0 || conv > 0 || rev > 0)) {
-                                    string pKey = month + "|" + week + "|" + dateStr + "|" + ctype + "|" + campaign + "|" + adGroupCat + "|" + prodName;
+                                string dev = "PC";
+                                if (!string.IsNullOrEmpty(campaign)) {
+                                    string uc = campaign.ToUpper();
+                                    if (uc.Contains("MO") || uc.Contains("\uBAA8\uBC14\uC77C") || uc.Contains("MOBILE")) dev = "MO";
+                                }
+
+                                if (!string.IsNullOrEmpty(prodName) && (clk > 0 || costNoVat > 0 || conv > 0 || rev > 0 || imp >= 3)) {
+                                    string pKey = month + "|" + week + "|" + ctype + "|" + dev + "|" + adGroupCat + "|" + prodName;
                                     ProdItem pi;
                                     if (!prodDict.TryGetValue(pKey, out pi)) {
-                                        pi = new ProdItem { Month = month, Week = week, DateStr = dateStr, CampaignType = ctype, Campaign = campaign, AdGroupCat = adGroupCat, ProductName = prodName, SojaeId = sojaeId };
+                                        pi = new ProdItem { Month = month, Week = week, Device = dev, CampaignType = ctype, AdGroupCat = adGroupCat, ProductName = prodName, SojaeId = sojaeId };
                                         prodDict[pKey] = pi;
                                     }
                                     pi.Imp += imp; pi.Clk += clk; pi.CostVat += costVat; pi.CostNoVat += costNoVat; pi.Conv += conv; pi.Revenue += rev;
@@ -326,9 +332,8 @@ public class FastAggregator {
                 if (cnt > 0) sb.Append(",");
                 sb.Append("{\"m\":\"").Append(Escape(kv.Month))
                   .Append("\",\"w\":\"").Append(Escape(kv.Week))
-                  .Append("\",\"dt\":\"").Append(Escape(kv.DateStr))
+                  .Append("\",\"d\":\"").Append(Escape(kv.Device))
                   .Append("\",\"ct\":\"").Append(Escape(kv.CampaignType))
-                  .Append("\",\"c\":\"").Append(Escape(kv.Campaign))
                   .Append("\",\"ag\":\"").Append(Escape(kv.AdGroupCat))
                   .Append("\",\"kw\":\"").Append(Escape(kv.Keyword));
                 if (!string.IsNullOrEmpty(kv.SearchType)) sb.Append("\",\"st\":\"").Append(Escape(kv.SearchType));
@@ -351,9 +356,8 @@ public class FastAggregator {
                 if (cnt > 0) sb.Append(",");
                 sb.Append("{\"m\":\"").Append(Escape(kv.Month))
                   .Append("\",\"w\":\"").Append(Escape(kv.Week))
-                  .Append("\",\"dt\":\"").Append(Escape(kv.DateStr))
+                  .Append("\",\"d\":\"").Append(Escape(kv.Device))
                   .Append("\",\"ct\":\"").Append(Escape(kv.CampaignType))
-                  .Append("\",\"c\":\"").Append(Escape(kv.Campaign))
                   .Append("\",\"ag\":\"").Append(Escape(kv.AdGroupCat))
                   .Append("\",\"pn\":\"").Append(Escape(kv.ProductName))
                   .Append("\",\"sid\":\"").Append(Escape(kv.SojaeId)).Append("\"");
@@ -433,8 +437,8 @@ $excelPath = Join-Path $PSScriptRoot "RAW2.xlsx"
 $jsonPath = Join-Path $PSScriptRoot "dashboard_data.json"
 $jsPath = Join-Path $PSScriptRoot "dashboard_data.js"
 
-Write-Host "Running daily-aggregated fast generator for RAW2.xlsx with DateStr..."
+Write-Host "Running optimized fast generator for RAW2.xlsx..."
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 [FastAggregator]::ProcessExcel($excelPath, $jsonPath, $jsPath)
 $sw.Stop()
-Write-Host "Finished processing RAW2.xlsx with DateStr in $($sw.Elapsed.TotalSeconds) seconds!"
+Write-Host "Finished processing RAW2.xlsx in $($sw.Elapsed.TotalSeconds) seconds!"
