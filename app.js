@@ -9,11 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const pwdError = document.getElementById('passwordErrorMsg');
 
   const checkAuth = () => {
-    return sessionStorage.getItem('sa_dashboard_authed') === 'true';
-  };
-
-  const unlockDashboard = () => {
-    loadDataAndInit();
+    if (sessionStorage.getItem('sa_dashboard_authed') === 'true') {
+      if (overlay) overlay.style.display = 'none';
+      return true;
+    }
+    return false;
   };
 
   const tryAuth = () => {
@@ -21,36 +21,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const val = (pwdInput.value || '').trim();
     if (val === SECRET_PASS) {
       sessionStorage.setItem('sa_dashboard_authed', 'true');
-      if (pwdBtn) {
-        pwdBtn.style.opacity = '0.7';
-        pwdBtn.innerText = '인증 확인 중...';
-      }
-      unlockDashboard();
+      if (overlay) overlay.style.display = 'none';
+      updateWeekOptions();
+      updateDateOptions();
+      updateDashboard();
     } else {
-      if (pwdError) {
-        pwdError.style.display = 'block';
-        pwdError.innerText = '⚠️ 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.';
-      }
+      if (pwdError) pwdError.style.display = 'block';
       pwdInput.value = '';
       pwdInput.focus();
     }
   };
 
-  // Event Binding for Password Auth
-  if (pwdBtn) {
-    pwdBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      tryAuth();
-    });
-  }
-
-  if (pwdInput) {
-    pwdInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
+  if (!checkAuth()) {
+    if (pwdBtn) {
+      pwdBtn.onclick = (e) => {
         e.preventDefault();
         tryAuth();
-      }
-    });
+      };
+    }
+    if (pwdInput) {
+      pwdInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          tryAuth();
+        }
+      };
+      setTimeout(() => pwdInput.focus(), 100);
+    }
   }
 
   if (checkAuth()) {
@@ -1858,63 +1855,11 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.innerHTML = html;
   };
 
-  // Dynamic Data Loader Routine with Fast Polling & Immediate UI Unlock
-  const loadDataAndInit = () => {
-    const renderUI = () => {
-      if (overlay) {
-        overlay.style.opacity = '0';
-        overlay.style.transition = 'opacity 0.25s ease';
-        setTimeout(() => { overlay.style.display = 'none'; }, 250);
-      }
-      updateWeekOptions();
-      updateDateOptions();
-      updateDashboard();
-    };
-
-    if (typeof DASHBOARD_DATA !== 'undefined') {
-      renderUI();
-      return;
-    }
-
-    const pollTimer = setInterval(() => {
-      if (typeof DASHBOARD_DATA !== 'undefined') {
-        clearInterval(pollTimer);
-        renderUI();
-      }
-    }, 50);
-
-    let script = document.getElementById('dashboardDataScript');
-    if (!script) {
-      script = document.querySelector('script[src="dashboard_data.js"]');
-    }
-
-    if (!script) {
-      script = document.createElement('script');
-      script.id = 'dashboardDataScript';
-      script.src = 'dashboard_data.js';
-      script.onload = () => {
-        clearInterval(pollTimer);
-        renderUI();
-      };
-      script.onerror = () => {
-        clearInterval(pollTimer);
-        if (pwdError) {
-          pwdError.style.display = 'block';
-          pwdError.innerText = '⚠️ 데이터 파일 로드 실패. 페이지를 새로고침해 주세요.';
-        }
-      };
-      document.body.appendChild(script);
-    } else {
-      script.addEventListener('load', () => {
-        clearInterval(pollTimer);
-        renderUI();
-      });
-    }
-  };
-
   // Initial Execution
   if (checkAuth()) {
-    loadDataAndInit();
+    updateWeekOptions();
+    updateDateOptions();
+    updateDashboard();
   }
 });
 
