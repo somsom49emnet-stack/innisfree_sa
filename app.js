@@ -13,11 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const unlockDashboard = () => {
-    if (overlay) {
-      overlay.style.opacity = '0';
-      overlay.style.transition = 'opacity 0.25s ease';
-      setTimeout(() => { overlay.style.display = 'none'; }, 250);
-    }
     loadDataAndInit();
   };
 
@@ -26,10 +21,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const val = (pwdInput.value || '').trim();
     if (val === SECRET_PASS) {
       sessionStorage.setItem('sa_dashboard_authed', 'true');
+      if (pwdBtn) {
+        pwdBtn.style.opacity = '0.7';
+        pwdBtn.innerText = '인증 확인 중...';
+      }
       unlockDashboard();
     } else {
       if (pwdError) {
         pwdError.style.display = 'block';
+        pwdError.innerText = '⚠️ 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.';
       }
       pwdInput.value = '';
       pwdInput.focus();
@@ -1858,35 +1858,57 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.innerHTML = html;
   };
 
-  // Dynamic Data Loader Routine
+  // Dynamic Data Loader Routine with Fast Polling & Immediate UI Unlock
   const loadDataAndInit = () => {
-    if (typeof DASHBOARD_DATA !== 'undefined') {
+    const renderUI = () => {
+      if (overlay) {
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => { overlay.style.display = 'none'; }, 250);
+      }
       updateWeekOptions();
       updateDateOptions();
       updateDashboard();
+    };
+
+    if (typeof DASHBOARD_DATA !== 'undefined') {
+      renderUI();
       return;
     }
 
+    const pollTimer = setInterval(() => {
+      if (typeof DASHBOARD_DATA !== 'undefined') {
+        clearInterval(pollTimer);
+        renderUI();
+      }
+    }, 50);
+
     let script = document.getElementById('dashboardDataScript');
+    if (!script) {
+      script = document.querySelector('script[src="dashboard_data.js"]');
+    }
+
     if (!script) {
       script = document.createElement('script');
       script.id = 'dashboardDataScript';
       script.src = 'dashboard_data.js';
       script.onload = () => {
-        updateWeekOptions();
-        updateDateOptions();
-        updateDashboard();
+        clearInterval(pollTimer);
+        renderUI();
       };
       script.onerror = () => {
-        console.error('dashboard_data.js 로드 실패');
+        clearInterval(pollTimer);
+        if (pwdError) {
+          pwdError.style.display = 'block';
+          pwdError.innerText = '⚠️ 데이터 파일 로드 실패. 페이지를 새로고침해 주세요.';
+        }
       };
       document.body.appendChild(script);
     } else {
-      script.onload = () => {
-        updateWeekOptions();
-        updateDateOptions();
-        updateDashboard();
-      };
+      script.addEventListener('load', () => {
+        clearInterval(pollTimer);
+        renderUI();
+      });
     }
   };
 
