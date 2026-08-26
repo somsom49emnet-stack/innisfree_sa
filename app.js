@@ -11,8 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const checkAuth = () => {
     if (sessionStorage.getItem('sa_dashboard_authed') === 'true') {
       if (overlay) overlay.style.display = 'none';
-      return true;}
-    return false;};
+      return true;
+    }
+    return false;
+  };
 
   const tryAuth = () => {
     if (!pwdInput) return;
@@ -22,35 +24,47 @@ document.addEventListener('DOMContentLoaded', () => {
       if (overlay) overlay.style.display = 'none';
       updateWeekOptions();
       updateDateOptions();
-      updateDashboard();} else {
+      updateDashboard();
+    } else {
       if (pwdError) pwdError.style.display = 'block';
       pwdInput.value = '';
-      pwdInput.focus();}};
+      pwdInput.focus();
+    }
+  };
 
   if (!checkAuth()) {
     if (pwdBtn) {
       pwdBtn.onclick = (e) => {
         e.preventDefault();
-        tryAuth();};}
+        tryAuth();
+      };
+    }
     if (pwdInput) {
       pwdInput.onkeydown = (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          tryAuth();}};
-      setTimeout(() => pwdInput.focus(), 100);}}
+          tryAuth();
+        }
+      };
+      setTimeout(() => pwdInput.focus(), 100);
+    }
+  }
 
   if (checkAuth()) {
-    if (overlay) overlay.style.display = 'none';} else {
+    if (overlay) overlay.style.display = 'none';
+  } else {
     if (overlay) {
       overlay.style.display = 'flex';
-      overlay.style.opacity = '1';}
-    setTimeout(() => { if (pwdInput) pwdInput.focus();}, 100);}
+      overlay.style.opacity = '1';
+    }
+    setTimeout(() => { if (pwdInput) pwdInput.focus(); }, 100);
+  }
 
   let currentMonth = '8';
   let currentWeek = 'ALL';
   let currentDate = 'ALL';
   let activeTab = 'tab-overview';
-
+  
   let powerlinkActiveChips = new Set();
   let powerlinkActiveSearchTypes = new Set();
   let shoppingActiveChips = new Set();
@@ -70,8 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (item.d) return item.d;
     const cName = (item.Campaign || '').toUpperCase();
     if (cName.includes('MO') || cName.includes('모바일') || cName.includes('MOBILE')) {
-      return 'MO';}
-    return 'PC';};
+      return 'MO';
+    }
+    return 'PC';
+  };
 
   let powerlinkTopCategory = 'Revenue'; // Revenue, Roas, LowRoas
   let powerlinkGrowthCategory = 'wow'; // wow, mom
@@ -86,13 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const getRoasBadgeClass = (roas) => {
     if (roas >= 500) return 'roas-high';
     if (roas >= 300) return 'roas-mid';
-    return 'roas-low';};
+    return 'roas-low';
+  };
 
   const getDiffBadge = (diffVal) => {
     if (diffVal > 0) {
-      return `<span class="diff-badge diff-up">▲ +${diffVal.toFixed(1)}%p</span>`;} else if (diffVal < 0) {
-      return `<span class="diff-badge diff-down">▼ -${Math.abs(diffVal).toFixed(1)}%p</span>`;} else {
-      return `<span class="diff-badge diff-neutral">- 0.0%p</span>`;}};
+      return `<span class="diff-badge diff-up">▲ +${diffVal.toFixed(1)}%p</span>`;
+    } else if (diffVal < 0) {
+      return `<span class="diff-badge diff-down">▼ -${Math.abs(diffVal).toFixed(1)}%p</span>`;
+    } else {
+      return `<span class="diff-badge diff-neutral">- 0.0%p</span>`;
+    }
+  };
 
   // Standardize Data Items (Map short keys m, ct, w, dt, d, c, ag, kw, pn, sid, i, cl, cvat, cnovat, cv, r)
   const normalizeItem = (item) => {
@@ -114,7 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
       CostVat: item.CostVat !== undefined ? item.CostVat : (item.cvat || 0),
       CostNoVat: item.CostNoVat !== undefined ? item.CostNoVat : (item.cnovat || 0),
       Conv: item.Conv !== undefined ? item.Conv : (item.cv || 0),
-      Revenue: item.Revenue !== undefined ? item.Revenue : (item.r || 0)};};
+      Revenue: item.Revenue !== undefined ? item.Revenue : (item.r || 0)
+    };
+  };
 
   let normalizedData = null;
 
@@ -122,15 +145,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (normalizedData) return normalizedData;
     if (typeof DASHBOARD_DATA === 'undefined') {
       console.error('DASHBOARD_DATA missing!');
-      return { months: [], weeks: [], adGroupCats: [], groups: [], keywords: [], products: []};}
+      return { months: [], weeks: [], adGroupCats: [], groups: [], keywords: [], products: [] };
+    }
     normalizedData = {
       months: DASHBOARD_DATA.months || [],
       weeks: DASHBOARD_DATA.weeks || [],
       adGroupCats: DASHBOARD_DATA.adGroupCats || [],
       groups: (DASHBOARD_DATA.groups || []).map(normalizeItem),
       keywords: (DASHBOARD_DATA.keywords || []).map(normalizeItem),
-      products: (DASHBOARD_DATA.products || []).map(normalizeItem)};
-    return normalizedData;};
+      products: (DASHBOARD_DATA.products || []).map(normalizeItem)
+    };
+    return normalizedData;
+  };
 
   // Populate Week Selector Options
   const updateWeekOptions = () => {
@@ -140,17 +166,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let availableWeeks = new Set();
     const sourceList = raw.groups.length > 0 ? raw.groups : raw.keywords;
-
+    
     sourceList.forEach(item => {
       if (currentMonth === 'ALL' || String(item.Month) === String(currentMonth)) {
-        if (item.Week) availableWeeks.add(item.Week);}});
+        if (item.Week) availableWeeks.add(item.Week);
+      }
+    });
 
     const sortedWeeks = Array.from(availableWeeks).sort();
-
+    
     let html = `<option value="ALL" ${currentWeek === 'ALL' ? 'selected' : ''}>선택월 전체</option>`;
     sortedWeeks.forEach(w => {
-      html += `<option value="${w}" ${currentWeek === w ? 'selected' : ''}>${w}</option>`;});
-    weekSelect.innerHTML = html;};
+      html += `<option value="${w}" ${currentWeek === w ? 'selected' : ''}>${w}</option>`;
+    });
+    weekSelect.innerHTML = html;
+  };
 
   // Populate Date Selector Options
   const updateDateOptions = () => {
@@ -160,31 +190,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let availableDates = new Set();
     const sourceList = raw.groups.length > 0 ? raw.groups : raw.keywords;
-
+    
     sourceList.forEach(item => {
       if (currentMonth !== 'ALL' && String(item.Month) !== String(currentMonth)) return;
       if (currentWeek !== 'ALL' && String(item.Week) !== String(currentWeek)) return;
-      if (item.Date) availableDates.add(item.Date);});
+      if (item.Date) availableDates.add(item.Date);
+    });
 
     const sortedDates = Array.from(availableDates).sort();
-
+    
     let html = `<option value="ALL" ${currentDate === 'ALL' ? 'selected' : ''}>전체 일자 (All Days)</option>`;
     sortedDates.forEach(d => {
-      html += `<option value="${d}" ${currentDate === d ? 'selected' : ''}>${d}</option>`;});
-    dateSelect.innerHTML = html;};
+      html += `<option value="${d}" ${currentDate === d ? 'selected' : ''}>${d}</option>`;
+    });
+    dateSelect.innerHTML = html;
+  };
 
   // Filter Functions
   const filterByMonthOnly = (list) => {
     return list.filter(item => {
       if (currentMonth !== 'ALL' && String(item.Month) !== String(currentMonth)) return false;
-      return true;});};
+      return true;
+    });
+  };
 
   const filterList = (list) => {
     return list.filter(item => {
       if (currentMonth !== 'ALL' && String(item.Month) !== String(currentMonth)) return false;
       if (currentWeek !== 'ALL' && String(item.Week) !== String(currentWeek)) return false;
       if (currentDate !== 'ALL' && String(item.Date) !== String(currentDate)) return false;
-      return true;});};
+      return true;
+    });
+  };
 
   // Event Listeners for Filters
   const monthSelect = document.getElementById('monthSelect');
@@ -196,7 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
       currentDate = 'ALL';
       updateWeekOptions();
       updateDateOptions();
-      updateDashboard();});}
+      updateDashboard();
+    });
+  }
 
   const weekSelect = document.getElementById('weekSelect');
   if (weekSelect) {
@@ -204,13 +243,17 @@ document.addEventListener('DOMContentLoaded', () => {
       currentWeek = e.target.value;
       currentDate = 'ALL';
       updateDateOptions();
-      updateDashboard();});}
+      updateDashboard();
+    });
+  }
 
   const dateSelect = document.getElementById('dateSelect');
   if (dateSelect) {
     dateSelect.addEventListener('change', (e) => {
       currentDate = e.target.value;
-      updateDashboard();});}
+      updateDashboard();
+    });
+  }
 
   // Tab Switching Logic
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -218,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       tabBtns.forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
+      
       btn.classList.add('active');
       activeTab = btn.getAttribute('data-tab');
       document.getElementById(activeTab).classList.add('active');
@@ -226,28 +269,37 @@ document.addEventListener('DOMContentLoaded', () => {
       renderTabSpecificKPIs(filterList(getData().groups));
 
       setTimeout(() => {
-        Object.values(charts).forEach(chart => chart && chart.resize());}, 50);});});
+        Object.values(charts).forEach(chart => chart && chart.resize());
+      }, 50);
+    });
+  });
 
   // Render Top KPI Summary Cards (Dynamic per Active Tab!)
   const renderTabSpecificKPIs = (filteredGroups) => {
     let targetGroups = filteredGroups;
-    let badgeText = '?꾩껜 罹좏럹??';
+    let badgeText = '전체 캠페인';
 
     if (activeTab === 'tab-powerlink') {
-      targetGroups = filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕');
-      badgeText = '?뚯썙留곹겕 ?꾩슜';} else if (activeTab === 'tab-shopping') {
-      targetGroups = filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕' ? 쇳븨寃??? 꾩슜';} else if (activeTab === 'tab-newproduct') {
-      targetGroups = filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕' ? 좎젣 ? 덇 ???? 꾩슜';}
+      targetGroups = filteredGroups.filter(g => g.CampaignType === '파워링크');
+      badgeText = '파워링크 전용';
+    } else if (activeTab === 'tab-shopping') {
+      targetGroups = filteredGroups.filter(g => g.CampaignType === '쇼핑검색');
+      badgeText = '쇼핑검색 전용';
+    } else if (activeTab === 'tab-newproduct') {
+      targetGroups = filteredGroups.filter(g => g.CampaignType === '신제품검색');
+      badgeText = '신제품검색 전용';
+    }
 
     let costNoVat = 0, costVat = 0, rev = 0, conv = 0, clk = 0, imp = 0;
-
+    
     targetGroups.forEach(w => {
       costNoVat += w.CostNoVat || 0;
       costVat += w.CostVat || 0;
       rev += w.Revenue || 0;
       conv += w.Conv || 0;
       clk += w.Clk || 0;
-      imp += w.Imp || 0;});
+      imp += w.Imp || 0;
+    });
 
     const roas = costNoVat > 0 ? (rev / costNoVat) * 100 : 0;
     const aov = conv > 0 ? rev / conv : 0;
@@ -265,7 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('kpiAov').innerText = fmtCurr(aov);
     document.getElementById('kpiTotalClicks').innerText = fmtNum(clk) + '??;
     document.getElementById('kpiCtr').innerText = fmtPct(ctr);
-    document.getElementById('kpiCpc').innerText = fmtCurr(cpc);};
+    document.getElementById('kpiCpc').innerText = fmtCurr(cpc);
+  };
 
   // Render Insights Comments
   const renderAllTabInsights = (allGroups) => {
@@ -276,16 +329,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ovBox) {
       let costSum = 0, revSum = 0;
       let ctypeStats = {};
-
+      
       allGroups.forEach(w => {
         costSum += w.CostNoVat || 0;
         revSum += w.Revenue || 0;
         if (!ctypeStats[w.CampaignType]) {
-          ctypeStats[w.CampaignType] = { cost: 0, rev: 0, conv: 0, clk: 0};}
+          ctypeStats[w.CampaignType] = { cost: 0, rev: 0, conv: 0, clk: 0 };
+        }
         ctypeStats[w.CampaignType].cost += w.CostNoVat || 0;
         ctypeStats[w.CampaignType].rev += w.Revenue || 0;
         ctypeStats[w.CampaignType].conv += w.Conv || 0;
-        ctypeStats[w.CampaignType].clk += w.Clk || 0;});
+        ctypeStats[w.CampaignType].clk += w.Clk || 0;
+      });
 
       const totalRoas = costSum > 0 ? (revSum / costSum) * 100 : 0;
 
@@ -295,75 +350,124 @@ document.addEventListener('DOMContentLoaded', () => {
           <p>珥?愿묎퀬鍮?VAT?쒖쇅) <strong>${fmtCurr(costSum)}</strong> 吏묓뻾, 珥??꾪솚留ㅼ텧??<strong>${fmtCurr(revSum)}</strong> ?ъ꽦?쇰줈 ?됯퇏 ROAS <strong>${fmtRoas(totalRoas)}</strong>??寃ш퀬???⑥쑉??湲곕줉?덉뒿?덈떎.</p>
         </div>
         <div class="insight-item info">
-          <h4>?뱟 2. 二쇱감蹂??깃낵 ?붿빟</h4>
-          <p>8??1二쇱감 ?꾨줈紐⑥뀡 湲고쉷???뱀닔濡?ROAS 1,000% ?댁긽 ??컻???깃낵瑜?嫄곕몢?덉쑝硫? 2~3二쇱감?먮룄 二쇱감蹂?1.5??2?듬? ?덉젙??留ㅼ텧???좎? 以묒엯?덈떎.</p>
+          <h4>📌 1. [${filterText}] 전체 성과 요약</h4>
+          <p>총 광고비(VAT제외) <strong>${fmtCurr(costSum)}</strong> 집행, 총 전환매출액 <strong>${fmtCurr(revSum)}</strong> 달성으로 평균 ROAS <strong>${fmtRoas(totalRoas)}</strong>의 고효율을 기록했습니다.</p>
+        </div>
+        <div class="insight-item info">
+          <h4>📈 2. 주차별 성과 요약</h4>
+          <p>8월 1주차 프로모션 기획의 힘입어 ROAS 1,000% 이상의 실적을 거뒀으며, 2~3주차에도 주차별 1.5~2배의 매출을 유지 중입니다.</p>
         </div>
         <div class="insight-item warning">
-          <h4>?룫 3. 洹몃９蹂??깃낵 ?붿빟</h4>
-          <p>?먯궗紐?釉뚮옖??洹몃９(ROAS 1,200%+) 諛?移댄뀒怨좊━ ????곹뭹援??좎????뚯슦?????꾩껜 留ㅼ텧 諛??⑥쑉 ?깆옣???遺遺꾩쓣 ?뺤꽦?섍퀬 ?덉뒿?덈떎.</p>
+          <h4>🎯 3. 그룹별 성과 요약</h4>
+          <p>자사 브랜드 그룹(ROAS 1,200%+) 및 카테고리 상품군 검색 확장으로 전체 매출 및 효율 성장의 대부분을 차지하고 있습니다.</p>
         </div>
         <div class="insight-item positive">
-          <h4>?? 4. 留ㅼ텧 & ROAS 寃ъ씤 ?붿빟</h4>
-          <p>?쇳븨寃??????곹뭹 <strong>?대땲?ㅽ봽由??좏겕由?/ ?뚯슦???붾툝湲고쉷</strong> ?뚯옱 諛??뚯썙留곹겕 <strong>[?대땲?ㅽ봽由?</strong> ?먯궗紐??ㅼ썙?쒓? ?깆옣???듭떖 紐⑤찘??낅땲??</p>
+          <h4>💡 4. 매출 & ROAS 견인 요약</h4>
+          <p>쇼핑검색 대표 상품 <strong>이니스프리 세럼 / 노세범 파우더</strong> 제품 및 파워링크 <strong>[이니스프리</strong> 자사명 키워드가 성장의 중심 모멘텀입니다.</p>
         </div>
-      `;}
+      `;
+    }
 
     // 2. Powerlink Insights
     const plBox = document.getElementById('powerlinkInsightList');
     if (plBox) {
-      const plGroups = allGroups.filter(g => g.CampaignType === '?뚯썙留곹겕');
+      const plGroups = allGroups.filter(g => g.CampaignType === '파워링크');
       let plCost = 0, plRev = 0;
-      plGroups.forEach(g => { plCost += g.CostNoVat || 0; plRev += g.Revenue || 0;});
+      plGroups.forEach(g => { plCost += g.CostNoVat || 0; plRev += g.Revenue || 0; });
       const plRoas = plCost > 0 ? (plRev / plCost) * 100 : 0;
 
       plBox.innerHTML = `
         <div class="insight-item positive">
-          <h4>?뱤 1. [${filterText}] ?뚯썙留곹겕 ?꾩껜 ?깃낵 ?붿빟</h4>
-          <p>?뚯썙留곹겕 愿묎퀬鍮?<strong>${fmtCurr(plCost)}</strong> ?ъ엯?쇰줈 留ㅼ텧??<strong>${fmtCurr(plRev)}</strong>, ROAS <strong>${fmtRoas(plRoas)}</strong> ?ъ꽦.</p>
+          <h4>📌 1. [${filterText}] 파워링크 전체 성과 요약</h4>
+          <p>파워링크 광고비 <strong>${fmtCurr(plCost)}</strong> 투입으로 매출액 <strong>${fmtCurr(plRev)}</strong>, ROAS <strong>${fmtRoas(plRoas)}</strong> 달성.</p>
         </div>
         <div class="insight-item info">
-          <h4>?뱟 2. 二쇱감蹂??깃낵 ?붿빟</h4>
-          <p>二쇱감蹂?愿묎퀬鍮??뚯쭊 ?鍮?ROAS 400%~520% ?섏???袁몄????좎??섎ŉ 寃???좎엯 怨좉컼??援щℓ ?꾪솚?⑥쓣 諛⑹뼱?섍퀬 ?덉뒿?덈떎.</p>
+          <h4>📈 2. 주차별 성과 요약</h4>
+          <p>주차별 광고비 소진 대비 ROAS 400%~520% 수준을 꾸준히 유지하며 검색 유입 고객의 구매 전환율을 방어하고 있습니다.</p>
         </div>
         <div class="insight-item warning">
-          <h4>?룫 3. 洹몃９蹂??깃낵 ?붿빟 (?먯궗紐?vs ?쒗뭹援?</h4>
-          <p>[?먯궗紐? 洹몃９??ROAS 1,000% ?댁긽?쇰줈 ?뺣룄?곸씠硫? [?쒗뭹援??쇰컲?ㅼ썙?? 洹몃９? ?몄? 諛??먯깋 ?뺤옣 ?덉씠????븷???섑뻾 以묒엯?덈떎.</p>
+          <h4>🎯 3. 그룹별 성과 요약 (자사명 vs 제품군)</h4>
+          <p>[자사명] 그룹은 ROAS 1,000% 이상으로 압도적이며, [제품군/일반키워드] 그룹은 인지 및 검색 확장 레이어 역할을 수행 중입니다.</p>
         </div>
         <div class="insight-item positive">
-          <h4>?? 4. 留ㅼ텧 & ROAS 寃ъ씤 ?ㅼ썙???붿빟</h4>
-          <p>留ㅼ텧 寃ъ씤 1?? <strong>[?대땲?ㅽ봽由?</strong> | ROAS 寃ъ씤 1?? <strong>[?대땲?ㅽ봽由??몄꽭踰?</strong> (??⑥쑉 ?ㅼ썙???낆같媛 ?쒕떇 ?꾩슂).</p>
+          <h4>💡 4. 매출 & ROAS 견인 키워드 요약</h4>
+          <p>매출 견인 1위: <strong>[이니스프리]</strong> | ROAS 견인 1위: <strong>[이니스프리 노세범]</strong> (고효율 키워드 입찰가 튜닝 필요).</p>
         </div>
-      `;}
+      `;
+    }
 
     // 3. Shopping Insights
     const spBox = document.getElementById('shoppingInsightList');
     if (spBox) {
-      const spGroups = allGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'newproductInsightList');
+      const spGroups = allGroups.filter(g => g.CampaignType === '쇼핑검색');
+      let spCost = 0, spRev = 0;
+      spGroups.forEach(g => { spCost += g.CostNoVat || 0; spRev += g.Revenue || 0; });
+      const spRoas = spCost > 0 ? (spRev / spCost) * 100 : 0;
+
+      spBox.innerHTML = `
+        <div class="insight-item positive">
+          <h4>📌 1. [${filterText}] 쇼핑검색 전체 성과 요약</h4>
+          <p>쇼핑검색 광고비 <strong>${fmtCurr(spCost)}</strong> 투입으로 매출액 <strong>${fmtCurr(spRev)}</strong>, ROAS <strong>${fmtRoas(spRoas)}</strong> 기록.</p>
+        </div>
+        <div class="insight-item info">
+          <h4>🛍️ 2. 상품(소재)별 효율 요약</h4>
+          <p>대표 베스트셀러 <strong>이니스프리 그린티 세럼 / 노세범 파우더</strong> 품목이 쇼핑검색 전체 전환매출의 70% 이상을 견인했습니다.</p>
+        </div>
+      `;
+    }
+
+    // 4. Newproduct Insights
+    const npBox = document.getElementById('newproductInsightList');
     if (npBox) {
-        const npGroups = allGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'湲고 ? ';
+      const npGroups = allGroups.filter(g => g.CampaignType === '신제품검색');
+      let npCost = 0, npRev = 0;
+      npGroups.forEach(g => { npCost += g.CostNoVat || 0; npRev += g.Revenue || 0; });
+      const npRoas = npCost > 0 ? (npRev / npCost) * 100 : 0;
+
+      npBox.innerHTML = `
+        <div class="insight-item positive">
+          <h4>✨ 1. [${filterText}] 신제품검색 성과 요약</h4>
+          <p>신제품검색 광고비 <strong>${fmtCurr(npCost)}</strong> 투입으로 매출액 <strong>${fmtCurr(npRev)}</strong>, ROAS <strong>${fmtRoas(npRoas)}</strong> 달성.</p>
+        </div>
+      `;
+    }
+  };
+
+  // Render Weekly Table Below Charts
+  const renderWeeklyTableBelowChart = (tableId, monthOnlyGroups) => {
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    if (!tbody) return;
+
+    const weekMap = {};
+    let totalImp = 0, totalClk = 0, totalCostNoVat = 0, totalConv = 0, totalRev = 0;
+
+    monthOnlyGroups.forEach(w => {
+      const wKey = w.Week || '기타';
       if (!weekMap[wKey]) {
-          weekMap[wKey] = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};}
-        weekMap[wKey].Imp += w.Imp || 0;
-        weekMap[wKey].Clk += w.Clk || 0;
-        weekMap[wKey].CostNoVat += w.CostNoVat || 0;
-        weekMap[wKey].Conv += w.Conv || 0;
-        weekMap[wKey].Revenue += w.Revenue || 0;
+        weekMap[wKey] = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+      }
+      weekMap[wKey].Imp += w.Imp || 0;
+      weekMap[wKey].Clk += w.Clk || 0;
+      weekMap[wKey].CostNoVat += w.CostNoVat || 0;
+      weekMap[wKey].Conv += w.Conv || 0;
+      weekMap[wKey].Revenue += w.Revenue || 0;
 
-        totalImp += w.Imp || 0;
-        totalClk += w.Clk || 0;
-        totalCostNoVat += w.CostNoVat || 0;
-        totalConv += w.Conv || 0;
-        totalRev += w.Revenue || 0;});
+      totalImp += w.Imp || 0;
+      totalClk += w.Clk || 0;
+      totalCostNoVat += w.CostNoVat || 0;
+      totalConv += w.Conv || 0;
+      totalRev += w.Revenue || 0;
+    });
 
-const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
+    const mTitle = currentMonth === 'ALL' ? '전체' : `${currentMonth}월`;
     const totalCtr = totalImp > 0 ? (totalClk / totalImp) * 100 : 0;
     const totalRoas = totalCostNoVat > 0 ? (totalRev / totalCostNoVat) * 100 : 0;
     const totalAov = totalConv > 0 ? totalRev / totalConv : 0;
     const totalCpc = totalClk > 0 ? totalCostNoVat / totalClk : 0;
 
     let html = `
-  <tr class="highlight-row" >
-        <td>?뙼 ${mTitle} ?꾩껜</td>
+      <tr class="highlight-row">
+        <td>📌 ${mTitle} 전체</td>
         <td class="number-col">${fmtNum(totalImp)}</td>
         <td class="number-col">${fmtNum(totalClk)}</td>
         <td class="number-col">${fmtPct(totalCtr)}</td>
@@ -374,7 +478,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         <td class="number-col">${fmtCurr(totalAov)}</td>
         <td class="number-col">${fmtCurr(totalCpc)}</td>
       </tr>
-  `;
+    `;
 
     const sortedWeekKeys = Object.keys(weekMap).sort();
     sortedWeekKeys.forEach(wKey => {
@@ -385,7 +489,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       const cpc = item.Clk > 0 ? item.CostNoVat / item.Clk : 0;
 
       html += `
-  <tr >
+        <tr>
           <td>${wKey}</td>
           <td class="number-col">${fmtNum(item.Imp)}</td>
           <td class="number-col">${fmtNum(item.Clk)}</td>
@@ -397,9 +501,11 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
           <td class="number-col">${fmtCurr(aov)}</td>
           <td class="number-col">${fmtCurr(cpc)}</td>
         </tr>
-  `;});
+      `;
+    });
 
-    tbody.innerHTML = html;};
+    tbody.innerHTML = html;
+  };
 
   // Overview Tab: Campaign Type Table with WoW & MoM ROAS Diff
   const renderOverviewCampaignTypeTable = (filteredGroups, rawData) => {
@@ -408,7 +514,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
 
     const ctypes = ['?쇳븨寃??, '?뚯썙留곹겕', '?좎젣?덇???];
     const currentStats = {};
-    ctypes.forEach(ct => { currentStats[ct] = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};});
+    ctypes.forEach(ct => { currentStats[ct] = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 }; });
 
     filteredGroups.forEach(w => {
       if (currentStats[w.CampaignType]) {
@@ -416,7 +522,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         currentStats[w.CampaignType].Clk += w.Clk || 0;
         currentStats[w.CampaignType].CostNoVat += w.CostNoVat || 0;
         currentStats[w.CampaignType].Conv += w.Conv || 0;
-        currentStats[w.CampaignType].Revenue += w.Revenue || 0;}});
+        currentStats[w.CampaignType].Revenue += w.Revenue || 0;
+      }
+    });
 
     // Prev Week (WoW)
     const curMonthWeeks = Array.from(new Set(filteredGroups.map(g => g.Week))).sort();
@@ -426,22 +534,27 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
     const prevWeek = latestIdx > 0 ? allWeeks[latestIdx - 1] : null;
 
     const prevWeekStats = {};
-    ctypes.forEach(ct => { prevWeekStats[ct] = { CostNoVat: 0, Revenue: 0};});
+    ctypes.forEach(ct => { prevWeekStats[ct] = { CostNoVat: 0, Revenue: 0 }; });
     if (prevWeek) {
       rawData.groups.filter(g => g.Week === prevWeek).forEach(g => {
         if (prevWeekStats[g.CampaignType]) {
           prevWeekStats[g.CampaignType].CostNoVat += g.CostNoVat || 0;
-          prevWeekStats[g.CampaignType].Revenue += g.Revenue || 0;}});}
+          prevWeekStats[g.CampaignType].Revenue += g.Revenue || 0;
+        }
+      });
+    }
 
     // Prev Month (MoM)
     const curM = currentMonth !== 'ALL' ? parseInt(currentMonth) : 8;
     const prevM = curM > 1 ? curM - 1 : 12;
     const prevMonthStats = {};
-    ctypes.forEach(ct => { prevMonthStats[ct] = { CostNoVat: 0, Revenue: 0};});
+    ctypes.forEach(ct => { prevMonthStats[ct] = { CostNoVat: 0, Revenue: 0 }; });
     rawData.groups.filter(g => String(g.Month) === String(prevM)).forEach(g => {
       if (prevMonthStats[g.CampaignType]) {
         prevMonthStats[g.CampaignType].CostNoVat += g.CostNoVat || 0;
-        prevMonthStats[g.CampaignType].Revenue += g.Revenue || 0;}});
+        prevMonthStats[g.CampaignType].Revenue += g.Revenue || 0;
+      }
+    });
 
     let html = '';
     ctypes.forEach(ct => {
@@ -460,7 +573,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       const momDiff = pmRoas > 0 ? (roas - pmRoas) : 0;
 
       html += `
-  <tr >
+        <tr>
           <td><span class="kpi-badge">${ct}</span></td>
           <td class="number-col">${fmtNum(cur.Imp)}</td>
           <td class="number-col">${fmtNum(cur.Clk)}</td>
@@ -474,9 +587,11 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
           <td class="number-col">${fmtCurr(aov)}</td>
           <td class="number-col">${fmtCurr(cpc)}</td>
         </tr>
-  `;});
+      `;
+    });
 
-    tbody.innerHTML = html;};
+    tbody.innerHTML = html;
+  };
 
   // Powerlink AdGroup Category Table
   const renderPowerlinkAdGroupCats = (plGroups) => {
@@ -485,18 +600,21 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
 
     let filtered = plGroups;
     if (powerlinkAdGroupDevice !== 'ALL') {
-      filtered = filtered.filter(g => getDeviceType(g) === powerlinkAdGroupDevice);}
+      filtered = filtered.filter(g => getDeviceType(g) === powerlinkAdGroupDevice);
+    }
 
     const catMap = {};
     filtered.forEach(g => {
       const cat = g.AdGroupCat || '誘몄???;
       if (!catMap[cat]) {
-        catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};}
+        catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+      }
       catMap[cat].Imp += g.Imp || 0;
       catMap[cat].Clk += g.Clk || 0;
       catMap[cat].CostNoVat += g.CostNoVat || 0;
       catMap[cat].Conv += g.Conv || 0;
-      catMap[cat].Revenue += g.Revenue || 0;});
+      catMap[cat].Revenue += g.Revenue || 0;
+    });
 
     const catList = Object.values(catMap).sort((a, b) => b.Revenue - a.Revenue);
 
@@ -508,7 +626,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         const cpc = item.Clk > 0 ? item.CostNoVat / item.Clk : 0;
 
         return `
-  <tr >
+          <tr>
             <td><strong>${item.Cat}</strong></td>
             <td class="number-col">${fmtNum(item.Imp)}</td>
             <td class="number-col">${fmtNum(item.Clk)}</td>
@@ -520,16 +638,19 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
             <td class="number-col">${fmtCurr(aov)}</td>
             <td class="number-col">${fmtCurr(cpc)}</td>
           </tr>
-  `;}).join('');
-      tbody.innerHTML = html || `<tr > <td colspan="10" style="text-align:center;">?곗씠???놁쓬</td></tr> `;}
+        `;
+      }).join('');
+      tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
+    }
 
     if (chipContainer) {
       const allBtnClass = powerlinkActiveChips.size === 0 ? 'chip-btn active' : 'chip-btn';
-      let chipsHtml = `<button class="${allBtnClass}" data - cat="ALL" >? 꾩껜 蹂닿린(${catList.length})</button> `;
+      let chipsHtml = `<button class="${allBtnClass}" data-cat="ALL">?꾩껜 蹂닿린 (${catList.length})</button>`;
 
       catList.forEach(c => {
         const isActive = powerlinkActiveChips.has(c.Cat) ? 'chip-btn active' : 'chip-btn';
-        chipsHtml += `<button class="${isActive}" data - cat="${c.Cat}" > ${c.Cat}</button> `;});
+        chipsHtml += `<button class="${isActive}" data-cat="${c.Cat}">${c.Cat}</button>`;
+      });
 
       chipContainer.innerHTML = chipsHtml;
 
@@ -537,11 +658,17 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         btn.addEventListener('click', () => {
           const cat = btn.getAttribute('data-cat');
           if (cat === 'ALL') {
-            powerlinkActiveChips.clear();} else {
+            powerlinkActiveChips.clear();
+          } else {
             if (powerlinkActiveChips.has(cat)) powerlinkActiveChips.delete(cat);
-            else powerlinkActiveChips.add(cat);}
+            else powerlinkActiveChips.add(cat);
+          }
           renderPowerlinkAdGroupCats(plGroups);
-          if (updatePowerlinkKwTable) updatePowerlinkKwTable();});});}};
+          if (updatePowerlinkKwTable) updatePowerlinkKwTable();
+        });
+      });
+    }
+  };
 
   // Event Listener for Powerlink AdGroup Device Filter Buttons
   const adgroupDevBtns = document.querySelectorAll('#adgroupDeviceGroup .subtab-btn');
@@ -551,7 +678,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       btn.classList.add('active');
       powerlinkAdGroupDevice = btn.getAttribute('data-device');
       const plGroups = filterList(getData().groups.filter(g => g.CampaignType === '?뚯썙留곹겕'));
-      renderPowerlinkAdGroupCats(plGroups);});});
+      renderPowerlinkAdGroupCats(plGroups);
+    });
+  });
 
   // Powerlink Search Type Chips Filter
   const renderPowerlinkSearchTypeChips = (plKwList) => {
@@ -560,15 +689,17 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
 
     const typeSet = new Set();
     plKwList.forEach(k => {
-      if (k.SearchType) typeSet.add(k.SearchType);});
+      if (k.SearchType) typeSet.add(k.SearchType);
+    });
 
     const typeList = Array.from(typeSet).sort();
     const allBtnClass = powerlinkActiveSearchTypes.size === 0 ? 'chip-btn active' : 'chip-btn';
-    let chipsHtml = `<button class="${allBtnClass}" data - type="ALL" >? 꾩껜 ? 좏삎 蹂닿린</button> `;
+    let chipsHtml = `<button class="${allBtnClass}" data-type="ALL">?꾩껜 ?좏삎 蹂닿린</button>`;
 
     typeList.forEach(t => {
       const isActive = powerlinkActiveSearchTypes.has(t) ? 'chip-btn active' : 'chip-btn';
-      chipsHtml += `<button class="${isActive}" data - type="${t}" > ${t}</button> `;});
+      chipsHtml += `<button class="${isActive}" data-type="${t}">${t}</button>`;
+    });
 
     chipContainer.innerHTML = chipsHtml;
 
@@ -576,11 +707,16 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       btn.addEventListener('click', () => {
         const type = btn.getAttribute('data-type');
         if (type === 'ALL') {
-          powerlinkActiveSearchTypes.clear();} else {
+          powerlinkActiveSearchTypes.clear();
+        } else {
           if (powerlinkActiveSearchTypes.has(type)) powerlinkActiveSearchTypes.delete(type);
-          else powerlinkActiveSearchTypes.add(type);}
+          else powerlinkActiveSearchTypes.add(type);
+        }
         renderPowerlinkSearchTypeChips(plKwList);
-        if (updatePowerlinkKwTable) updatePowerlinkKwTable();});});};
+        if (updatePowerlinkKwTable) updatePowerlinkKwTable();
+      });
+    });
+  };
 
   // Powerlink PC / MO Campaign Table with Shaded Summaries
   const renderPowerlinkDeviceTable = (plGroups) => {
@@ -588,13 +724,14 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
     if (!tbody) return;
 
     const campMap = {};
-    let totalPc = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};
-    let totalMo = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};
+    let totalPc = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+    let totalMo = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
 
     plGroups.forEach(g => {
       const cName = g.Campaign || '誘몄???;
       if (!campMap[cName]) {
-        campMap[cName] = { Campaign: cName, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};}
+        campMap[cName] = { Campaign: cName, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+      }
       campMap[cName].Imp += g.Imp || 0;
       campMap[cName].Clk += g.Clk || 0;
       campMap[cName].CostNoVat += g.CostNoVat || 0;
@@ -603,8 +740,11 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
 
       const isMo = cName.toUpperCase().includes('MO') || cName.includes('紐⑤컮??);
       if (isMo) {
-        totalMo.Imp += g.Imp || 0; totalMo.Clk += g.Clk || 0; totalMo.CostNoVat += g.CostNoVat || 0; totalMo.Conv += g.Conv || 0; totalMo.Revenue += g.Revenue || 0;} else {
-        totalPc.Imp += g.Imp || 0; totalPc.Clk += g.Clk || 0; totalPc.CostNoVat += g.CostNoVat || 0; totalPc.Conv += g.Conv || 0; totalPc.Revenue += g.Revenue || 0;}});
+        totalMo.Imp += g.Imp || 0; totalMo.Clk += g.Clk || 0; totalMo.CostNoVat += g.CostNoVat || 0; totalMo.Conv += g.Conv || 0; totalMo.Revenue += g.Revenue || 0;
+      } else {
+        totalPc.Imp += g.Imp || 0; totalPc.Clk += g.Clk || 0; totalPc.CostNoVat += g.CostNoVat || 0; totalPc.Conv += g.Conv || 0; totalPc.Revenue += g.Revenue || 0;
+      }
+    });
 
     const list = Object.values(campMap).sort((a, b) => b.CostNoVat - a.CostNoVat);
 
@@ -619,7 +759,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
     const pcCpc = totalPc.Clk > 0 ? totalPc.CostNoVat / totalPc.Clk : 0;
 
     let html = `
-  <tr class="summary-shaded-row" >
+      <tr class="summary-shaded-row">
         <td><span class="tag-mo">?꾩껜 MO ?붿빟</span></td>
         <td><strong>紐⑤컮??MO) 罹좏럹???꾩껜 ?⑷퀎</strong></td>
         <td class="number-col">${fmtNum(totalMo.Imp)}</td>
@@ -632,20 +772,20 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         <td class="number-col">${fmtCurr(moAov)}</td>
         <td class="number-col">${fmtCurr(moCpc)}</td>
       </tr>
-  <tr class="summary-shaded-row">
-    <td><span class="tag-pc">?꾩껜 PC ?붿빟</span></td>
-    <td><strong>PC 罹좏럹???꾩껜 ?⑷퀎</strong></td>
-    <td class="number-col">${fmtNum(totalPc.Imp)}</td>
-    <td class="number-col">${fmtNum(totalPc.Clk)}</td>
-    <td class="number-col">${fmtPct(pcCtr)}</td>
-    <td class="number-col">${fmtCurr(totalPc.CostNoVat)}</td>
-    <td class="number-col">${fmtNum(totalPc.Conv)}</td>
-    <td class="number-col">${fmtCurr(totalPc.Revenue)}</td>
-    <td class="number-col"><span class="roas-badge ${getRoasBadgeClass(pcRoas)}">${fmtRoas(pcRoas)}</span></td>
-    <td class="number-col">${fmtCurr(pcAov)}</td>
-    <td class="number-col">${fmtCurr(pcCpc)}</td>
-  </tr>
-`;
+      <tr class="summary-shaded-row">
+        <td><span class="tag-pc">?꾩껜 PC ?붿빟</span></td>
+        <td><strong>PC 罹좏럹???꾩껜 ?⑷퀎</strong></td>
+        <td class="number-col">${fmtNum(totalPc.Imp)}</td>
+        <td class="number-col">${fmtNum(totalPc.Clk)}</td>
+        <td class="number-col">${fmtPct(pcCtr)}</td>
+        <td class="number-col">${fmtCurr(totalPc.CostNoVat)}</td>
+        <td class="number-col">${fmtNum(totalPc.Conv)}</td>
+        <td class="number-col">${fmtCurr(totalPc.Revenue)}</td>
+        <td class="number-col"><span class="roas-badge ${getRoasBadgeClass(pcRoas)}">${fmtRoas(pcRoas)}</span></td>
+        <td class="number-col">${fmtCurr(pcAov)}</td>
+        <td class="number-col">${fmtCurr(pcCpc)}</td>
+      </tr>
+    `;
 
     html += list.map(item => {
       const isMo = item.Campaign.toUpperCase().includes('MO') || item.Campaign.includes('紐⑤컮??);
@@ -656,7 +796,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       const cpc = item.Clk > 0 ? item.CostNoVat / item.Clk : 0;
 
       return `
-  <tr >
+        <tr>
           <td>${tag}</td>
           <td><strong>${item.Campaign}</strong></td>
           <td class="number-col">${fmtNum(item.Imp)}</td>
@@ -669,9 +809,11 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
           <td class="number-col">${fmtCurr(aov)}</td>
           <td class="number-col">${fmtCurr(cpc)}</td>
         </tr>
-  `;}).join('');
+      `;
+    }).join('');
 
-    tbody.innerHTML = html;};
+    tbody.innerHTML = html;
+  };
 
   // Powerlink TOP 10 Keywords Table (Revenue / Roas from Top 20 Spend / LowRoas < 500%)
   const renderPowerlinkTop10Kw = (plKeywords) => {
@@ -680,36 +822,44 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
 
     let filtered = plKeywords;
     if (powerlinkTop10Device !== 'ALL') {
-      filtered = filtered.filter(k => getDeviceType(k) === powerlinkTop10Device);}
+      filtered = filtered.filter(k => getDeviceType(k) === powerlinkTop10Device);
+    }
 
     const kwMap = {};
     filtered.forEach(k => {
       const dev = getDeviceType(k);
       const key = k.Keyword + '|' + dev;
       if (!kwMap[key]) {
-        kwMap[key] = { Keyword: k.Keyword, Device: dev, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};}
+        kwMap[key] = { Keyword: k.Keyword, Device: dev, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+      }
       kwMap[key].Imp += k.Imp || 0;
       kwMap[key].Clk += k.Clk || 0;
       kwMap[key].CostNoVat += k.CostNoVat || 0;
       kwMap[key].Conv += k.Conv || 0;
-      kwMap[key].Revenue += k.Revenue || 0;});
+      kwMap[key].Revenue += k.Revenue || 0;
+    });
 
     let list = Object.values(kwMap);
 
     if (powerlinkTopCategory === 'Revenue') {
-      list.sort((a, b) => b.Revenue - a.Revenue);} else if (powerlinkTopCategory === 'Roas') {
+      list.sort((a, b) => b.Revenue - a.Revenue);
+    } else if (powerlinkTopCategory === 'Roas') {
       // Filter for Top 20 by Spend (愿묎퀬鍮꾩냼吏??곸쐞 20媛? as requested!
       list.sort((a, b) => b.CostNoVat - a.CostNoVat);
       const top20Spend = list.slice(0, 20);
       top20Spend.sort((a, b) => {
         const roasA = a.CostNoVat > 0 ? a.Revenue / a.CostNoVat : 0;
         const roasB = b.CostNoVat > 0 ? b.Revenue / b.CostNoVat : 0;
-        return roasB - roasA;});
-      list = top20Spend;} else if (powerlinkTopCategory === 'LowRoas') {
+        return roasB - roasA;
+      });
+      list = top20Spend;
+    } else if (powerlinkTopCategory === 'LowRoas') {
       // ROAS < 500% low efficiency keywords (sorted by CostNoVat desc) as requested!
       list = list.filter(item => {
         const roas = item.CostNoVat > 0 ? (item.Revenue / item.CostNoVat) * 100 : 0;
-        return item.CostNoVat > 0 && roas < 500;}).sort((a, b) => b.CostNoVat - a.CostNoVat);}
+        return item.CostNoVat > 0 && roas < 500;
+      }).sort((a, b) => b.CostNoVat - a.CostNoVat);
+    }
 
     const top10 = list.slice(0, 10);
 
@@ -720,7 +870,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       const cpc = k.Clk > 0 ? k.CostNoVat / k.Clk : 0;
 
       return `
-  <tr >
+        <tr>
           <td><strong>#${idx + 1}</strong></td>
           <td><strong>${k.Keyword}</strong></td>
           <td><span class="kpi-badge">${k.Device}</span></td>
@@ -734,9 +884,11 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
           <td class="number-col">${fmtCurr(aov)}</td>
           <td class="number-col">${fmtCurr(cpc)}</td>
         </tr>
-  `;}).join('');
+      `;
+    }).join('');
 
-    tbody.innerHTML = html || `<tr > <td colspan="12" style="text-align:center;">?곗씠???놁쓬</td></tr> `;};
+    tbody.innerHTML = html || `<tr><td colspan="12" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
+  };
 
   // Top 10 Category Subtab Event Listeners
   const top10Btns = document.querySelectorAll('#kwTop10Group .subtab-btn');
@@ -746,7 +898,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       btn.classList.add('active');
       powerlinkTopCategory = btn.getAttribute('data-top');
       const filteredKw = filterList(getData().keywords.filter(k => k.CampaignType === '?뚯썙留곹겕'));
-      renderPowerlinkTop10Kw(filteredKw);});});
+      renderPowerlinkTop10Kw(filteredKw);
+    });
+  });
 
   // Top 10 Device Subtab Event Listeners
   const top10DevBtns = document.querySelectorAll('#kwTop10DeviceGroup .subtab-btn');
@@ -756,7 +910,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       btn.classList.add('active');
       powerlinkTop10Device = btn.getAttribute('data-device');
       const filteredKw = filterList(getData().keywords.filter(k => k.CampaignType === '?뚯썙留곹겕'));
-      renderPowerlinkTop10Kw(filteredKw);});});
+      renderPowerlinkTop10Kw(filteredKw);
+    });
+  });
 
   // Powerlink ROAS Growth Split into 2 Cards (Up: Increased ROAS / Down: Decreased ROAS from Top 30 Spend)
   const renderPowerlinkKwGrowthSplit = (rawData) => {
@@ -772,7 +928,8 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       const dev = getDeviceType(k);
       const key = k.Keyword + '|' + dev;
       if (!totalKwSpend[key]) totalKwSpend[key] = 0;
-      totalKwSpend[key] += k.CostNoVat || 0;});
+      totalKwSpend[key] += k.CostNoVat || 0;
+    });
 
     const top30KwSet = new Set(
       Object.keys(totalKwSpend).sort((a, b) => totalKwSpend[b] - totalKwSpend[a]).slice(0, 30)
@@ -794,13 +951,17 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         if (!top30KwSet.has(key)) return;
 
         if (k.Week === latestWeek) {
-          if (!kwCurMap[key]) kwCurMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0};
+          if (!kwCurMap[key]) kwCurMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
           kwCurMap[key].CostNoVat += k.CostNoVat || 0;
-          kwCurMap[key].Revenue += k.Revenue || 0;}
+          kwCurMap[key].Revenue += k.Revenue || 0;
+        }
         if (prevWeek && k.Week === prevWeek) {
-          if (!kwPrevMap[key]) kwPrevMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0};
+          if (!kwPrevMap[key]) kwPrevMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
           kwPrevMap[key].CostNoVat += k.CostNoVat || 0;
-          kwPrevMap[key].Revenue += k.Revenue || 0;}});} else {
+          kwPrevMap[key].Revenue += k.Revenue || 0;
+        }
+      });
+    } else {
       const curM = currentMonth !== 'ALL' ? parseInt(currentMonth) : 8;
       const prevM = curM > 1 ? curM - 1 : 12;
 
@@ -810,13 +971,17 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         if (!top30KwSet.has(key)) return;
 
         if (String(k.Month) === String(curM)) {
-          if (!kwCurMap[key]) kwCurMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0};
+          if (!kwCurMap[key]) kwCurMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
           kwCurMap[key].CostNoVat += k.CostNoVat || 0;
-          kwCurMap[key].Revenue += k.Revenue || 0;}
+          kwCurMap[key].Revenue += k.Revenue || 0;
+        }
         if (String(k.Month) === String(prevM)) {
-          if (!kwPrevMap[key]) kwPrevMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0};
+          if (!kwPrevMap[key]) kwPrevMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
           kwPrevMap[key].CostNoVat += k.CostNoVat || 0;
-          kwPrevMap[key].Revenue += k.Revenue || 0;}});}
+          kwPrevMap[key].Revenue += k.Revenue || 0;
+        }
+      });
+    }
 
     const growthList = [];
     Object.keys(kwCurMap).forEach(key => {
@@ -828,11 +993,13 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       const diff = curRoas - prevRoas;
 
       growthList.push({
-        Keyword: cur.Keyword, Device: cur.Device, CurRoas: curRoas, PrevRoas: prevRoas, Diff: diff, CostNoVat: cur.CostNoVat, Revenue: cur.Revenue});});
+        Keyword: cur.Keyword, Device: cur.Device, CurRoas: curRoas, PrevRoas: prevRoas, Diff: diff, CostNoVat: cur.CostNoVat, Revenue: cur.Revenue
+      });
+    });
 
     const upList = growthList.filter(item => item.Diff >= 0).sort((a, b) => b.Diff - a.Diff).slice(0, 10);
     const htmlUp = upList.map((item, idx) => `
-  <tr >
+      <tr>
         <td><strong>#${idx + 1}</strong></td>
         <td><strong>${item.Keyword}</strong></td>
         <td><span class="kpi-badge">${item.Device}</span></td>
@@ -842,12 +1009,12 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         <td class="number-col">${fmtCurr(item.CostNoVat)}</td>
         <td class="number-col">${fmtCurr(item.Revenue)}</td>
       </tr>
-  `).join('');
-    tbodyUp.innerHTML = htmlUp || `<tr > <td colspan="8" style="text-align:center;">?곗씠???놁쓬</td></tr> `;
+    `).join('');
+    tbodyUp.innerHTML = htmlUp || `<tr><td colspan="8" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
 
     const downList = growthList.filter(item => item.Diff < 0).sort((a, b) => a.Diff - b.Diff).slice(0, 10);
     const htmlDown = downList.map((item, idx) => `
-  <tr >
+      <tr>
         <td><strong>#${idx + 1}</strong></td>
         <td><strong>${item.Keyword}</strong></td>
         <td><span class="kpi-badge">${item.Device}</span></td>
@@ -857,8 +1024,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         <td class="number-col">${fmtCurr(item.CostNoVat)}</td>
         <td class="number-col">${fmtCurr(item.Revenue)}</td>
       </tr>
-  `).join('');
-    tbodyDown.innerHTML = htmlDown || `<tr > <td colspan="8" style="text-align:center;">?곗씠???놁쓬</td></tr> `;};
+    `).join('');
+    tbodyDown.innerHTML = htmlDown || `<tr><td colspan="8" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
+  };
 
   // Growth Subtab Event Listeners
   const growthBtns = document.querySelectorAll('#kwGrowthGroup .subtab-btn');
@@ -867,7 +1035,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       growthBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       powerlinkGrowthCategory = btn.getAttribute('data-diff');
-      renderPowerlinkKwGrowthSplit(getData());});});
+      renderPowerlinkKwGrowthSplit(getData());
+    });
+  });
 
   // Shopping Tab: AdGroup Categories Performance Table & Chips Filter
   const renderShoppingAdGroupCats = (shoppingGroups) => {
@@ -876,18 +1046,21 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
 
     let filtered = shoppingGroups;
     if (shoppingAdGroupDevice !== 'ALL') {
-      filtered = filtered.filter(g => getDeviceType(g) === shoppingAdGroupDevice);}
+      filtered = filtered.filter(g => getDeviceType(g) === shoppingAdGroupDevice);
+    }
 
     const catMap = {};
     filtered.forEach(g => {
       const cat = g.AdGroupCat || '誘몄???;
       if (!catMap[cat]) {
-        catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};}
+        catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+      }
       catMap[cat].Imp += g.Imp || 0;
       catMap[cat].Clk += g.Clk || 0;
       catMap[cat].CostNoVat += g.CostNoVat || 0;
       catMap[cat].Conv += g.Conv || 0;
-      catMap[cat].Revenue += g.Revenue || 0;});
+      catMap[cat].Revenue += g.Revenue || 0;
+    });
 
     const catList = Object.values(catMap).sort((a, b) => b.Revenue - a.Revenue);
 
@@ -899,7 +1072,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         const cpc = item.Clk > 0 ? item.CostNoVat / item.Clk : 0;
 
         return `
-  <tr >
+          <tr>
             <td><strong>${item.Cat}</strong></td>
             <td class="number-col">${fmtNum(item.Imp)}</td>
             <td class="number-col">${fmtNum(item.Clk)}</td>
@@ -911,16 +1084,19 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
             <td class="number-col">${fmtCurr(aov)}</td>
             <td class="number-col">${fmtCurr(cpc)}</td>
           </tr>
-  `;}).join('');
-      tbody.innerHTML = html || `<tr > <td colspan="10" style="text-align:center;">?곗씠???놁쓬</td></tr> `;}
+        `;
+      }).join('');
+      tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
+    }
 
     if (chipContainer) {
       const allBtnClass = shoppingActiveChips.size === 0 ? 'chip-btn active' : 'chip-btn';
-      let chipsHtml = `<button class="${allBtnClass}" data - cat="ALL" >? 꾩껜 蹂닿린(${catList.length})</button> `;
+      let chipsHtml = `<button class="${allBtnClass}" data-cat="ALL">?꾩껜 蹂닿린 (${catList.length})</button>`;
 
       catList.forEach(c => {
         const isActive = shoppingActiveChips.has(c.Cat) ? 'chip-btn active' : 'chip-btn';
-        chipsHtml += `<button class="${isActive}" data - cat="${c.Cat}" > ${c.Cat}</button> `;});
+        chipsHtml += `<button class="${isActive}" data-cat="${c.Cat}">${c.Cat}</button>`;
+      });
 
       chipContainer.innerHTML = chipsHtml;
 
@@ -928,11 +1104,17 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         btn.addEventListener('click', () => {
           const cat = btn.getAttribute('data-cat');
           if (cat === 'ALL') {
-            shoppingActiveChips.clear();} else {
+            shoppingActiveChips.clear();
+          } else {
             if (shoppingActiveChips.has(cat)) shoppingActiveChips.delete(cat);
-            else shoppingActiveChips.add(cat);}
+            else shoppingActiveChips.add(cat);
+          }
           renderShoppingAdGroupCats(shoppingGroups);
-          updateShoppingFilteredTables();});});}};
+          updateShoppingFilteredTables();
+        });
+      });
+    }
+  };
 
   // Event Listener for Shopping AdGroup Device Filter Buttons
   const spAdgroupDevBtns = document.querySelectorAll('#shoppingAdGroupDeviceGroup .subtab-btn');
@@ -948,12 +1130,14 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
     npGroups.forEach(g => {
       const cat = g.AdGroupCat || '誘몄???;
       if (!catMap[cat]) {
-        catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};}
+        catMap[cat] = { Cat: cat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+      }
       catMap[cat].Imp += g.Imp || 0;
       catMap[cat].Clk += g.Clk || 0;
       catMap[cat].CostNoVat += g.CostNoVat || 0;
       catMap[cat].Conv += g.Conv || 0;
-      catMap[cat].Revenue += g.Revenue || 0;});
+      catMap[cat].Revenue += g.Revenue || 0;
+    });
 
     const catList = Object.values(catMap).sort((a, b) => b.Clk - a.Clk);
 
@@ -965,7 +1149,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         const cpc = item.Clk > 0 ? item.CostNoVat / item.Clk : 0;
 
         return `
-  <tr >
+          <tr>
             <td><strong>${item.Cat}</strong></td>
             <td class="number-col">${fmtNum(item.Imp)}</td>
             <td class="number-col">${fmtNum(item.Clk)}</td>
@@ -977,16 +1161,19 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
             <td class="number-col">${fmtCurr(aov)}</td>
             <td class="number-col">${fmtCurr(cpc)}</td>
           </tr>
-  `;}).join('');
-      tbody.innerHTML = html || `<tr > <td colspan="10" style="text-align:center;">?곗씠???놁쓬</td></tr> `;}
+        `;
+      }).join('');
+      tbody.innerHTML = html || `<tr><td colspan="10" style="text-align:center;">?곗씠???놁쓬</td></tr>`;
+    }
 
     if (chipContainer) {
       const allBtnClass = newproductActiveChips.size === 0 ? 'chip-btn active' : 'chip-btn';
-      let chipsHtml = `<button class="${allBtnClass}" data - cat="ALL" >? 꾩껜 蹂닿린(${catList.length})</button> `;
+      let chipsHtml = `<button class="${allBtnClass}" data-cat="ALL">?꾩껜 蹂닿린 (${catList.length})</button>`;
 
       catList.forEach(c => {
         const isActive = newproductActiveChips.has(c.Cat) ? 'chip-btn active' : 'chip-btn';
-        chipsHtml += `<button class="${isActive}" data - cat="${c.Cat}" > ${c.Cat}</button> `;});
+        chipsHtml += `<button class="${isActive}" data-cat="${c.Cat}">${c.Cat}</button>`;
+      });
 
       chipContainer.innerHTML = chipsHtml;
 
@@ -994,11 +1181,17 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         btn.addEventListener('click', () => {
           const cat = btn.getAttribute('data-cat');
           if (cat === 'ALL') {
-            newproductActiveChips.clear();} else {
+            newproductActiveChips.clear();
+          } else {
             if (newproductActiveChips.has(cat)) newproductActiveChips.delete(cat);
-            else newproductActiveChips.add(cat);}
+            else newproductActiveChips.add(cat);
+          }
           renderNewproductAdGroupCats(npGroups);
-          updateNewproductFilteredTables();});});}};
+          updateNewproductFilteredTables();
+        });
+      });
+    }
+  };
 
   // Helper: Draw Canvas Rounded Rectangle Badge
   const drawRoundedRect = (ctx, x, y, width, height, radius, fillColor, strokeColor) => {
@@ -1016,18 +1209,21 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
     ctx.closePath();
     if (fillColor) {
       ctx.fillStyle = fillColor;
-      ctx.fill();}
+      ctx.fill();
+    }
     if (strokeColor) {
       ctx.strokeStyle = strokeColor;
       ctx.lineWidth = 1;
-      ctx.stroke();}
-    ctx.restore();};
+      ctx.stroke();
+    }
+    ctx.restore();
+  };
 
   // Custom Plugin to Draw High-Visibility ROAS Badge Boxes over Line Data Points
   const roasLabelPlugin = {
     id: 'roasLabelPlugin',
     afterDatasetsDraw(chart) {
-      const { ctx} = chart;
+      const { ctx } = chart;
       chart.data.datasets.forEach((dataset, index) => {
         if (dataset.label && dataset.label.includes('ROAS')) {
           const meta = chart.getDatasetMeta(index);
@@ -1058,7 +1254,14 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(text, element.x, boxY + boxHeight / 2 + 0.5);
-                ctx.restore();}});}}});}};
+                ctx.restore();
+              }
+            });
+          }
+        }
+      });
+    }
+  };
 
   // Render Top Charts (ALWAYS Month Total for Selected Month)
   const renderCharts = (monthOnlyGroups) => {
@@ -1066,9 +1269,10 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
     const weekMap = {};
     monthOnlyGroups.forEach(w => {
       const weekLabel = w.Week || '湲고?';
-      if (!weekMap[weekLabel]) weekMap[weekLabel] = { CostNoVat: 0, Rev: 0};
+      if (!weekMap[weekLabel]) weekMap[weekLabel] = { CostNoVat: 0, Rev: 0 };
       weekMap[weekLabel].CostNoVat += w.CostNoVat || 0;
-      weekMap[weekLabel].Rev += w.Revenue || 0;});
+      weekMap[weekLabel].Rev += w.Revenue || 0;
+    });
 
     const labels = Object.keys(weekMap).sort();
     const costs = labels.map(l => weekMap[l].CostNoVat);
@@ -1083,24 +1287,30 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         data: {
           labels: labels,
           datasets: [
-            { label: '?꾪솚留ㅼ텧??(??', data: revs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y'},
-            { label: '珥앷킅怨좊퉬 (VAT?쒖쇅)', data: costs, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1, yAxisID: 'y'},
-            { label: 'ROAS (%)', data: roases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1'}
-          ]},
+            { label: '?꾪솚留ㅼ텧??(??', data: revs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
+            { label: '珥앷킅怨좊퉬 (VAT?쒖쇅)', data: costs, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1, yAxisID: 'y' },
+            { label: 'ROAS (%)', data: roases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
+          ]
+        },
         options: {
           responsive: true, maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false},
-          plugins: { legend: { labels: { color: '#111827'}}},
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: '#111827' } } },
           scales: {
-            x: { ticks: { color: '#4b5563'}},
-            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '留?}},
-            y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%'}, grid: { drawOnChartArea: false}}}},
-        plugins: [roasLabelPlugin]});}
+            x: { ticks: { color: '#4b5563' } },
+            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '留? } },
+            y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
+          }
+        },
+        plugins: [roasLabelPlugin]
+      });
+    }
 
     // 2. Campaign Share Donut Chart
-    let ctypeRev = { '?쇳븨寃??: 0, '?뚯썙留곹겕': 0, '?좎젣?덇???: 0};
+    let ctypeRev = { '?쇳븨寃??: 0, '?뚯썙留곹겕': 0, '?좎젣?덇???: 0 };
     monthOnlyGroups.forEach(w => {
-      if (ctypeRev[w.CampaignType] !== undefined) ctypeRev[w.CampaignType] += w.Revenue || 0;});
+      if (ctypeRev[w.CampaignType] !== undefined) ctypeRev[w.CampaignType] += w.Revenue || 0;
+    });
 
     if (charts.share) charts.share.destroy();
     const ctxShare = document.getElementById('chartCampaignShare');
@@ -1112,18 +1322,24 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
           datasets: [{
             data: [ctypeRev['?쇳븨寃??], ctypeRev['?뚯썙留곹겕'], ctypeRev['?좎젣?덇???]],
             backgroundColor: ['#059669', '#006633', '#d97706'],
-            borderColor: '#ffffff'}]},
+            borderColor: '#ffffff'
+          }]
+        },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { color: '#111827'}}}}});}
+          plugins: { legend: { position: 'bottom', labels: { color: '#111827' } } }
+        }
+      });
+    }
 
     // 3. Powerlink Weekly Chart
     const plWeeklyMap = {};
     monthOnlyGroups.filter(w => w.CampaignType === '?뚯썙留곹겕').forEach(w => {
       const wLabel = w.Week || '湲고?';
-      if (!plWeeklyMap[wLabel]) plWeeklyMap[wLabel] = { CostNoVat: 0, Rev: 0};
+      if (!plWeeklyMap[wLabel]) plWeeklyMap[wLabel] = { CostNoVat: 0, Rev: 0 };
       plWeeklyMap[wLabel].CostNoVat += w.CostNoVat || 0;
-      plWeeklyMap[wLabel].Rev += w.Revenue || 0;});
+      plWeeklyMap[wLabel].Rev += w.Revenue || 0;
+    });
 
     const plLabels = Object.keys(plWeeklyMap).sort();
     const plRevs = plLabels.map(l => plWeeklyMap[l].Rev);
@@ -1137,25 +1353,31 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         data: {
           labels: plLabels,
           datasets: [
-            { label: '?꾪솚留ㅼ텧??(??', data: plRevs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y'},
-            { label: 'ROAS (%)', data: plRoases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1'}
-          ]},
+            { label: '?꾪솚留ㅼ텧??(??', data: plRevs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
+            { label: 'ROAS (%)', data: plRoases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
+          ]
+        },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#111827'}}},
+          plugins: { legend: { labels: { color: '#111827' } } },
           scales: {
-            x: { ticks: { color: '#4b5563'}},
-            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '留?}},
-            y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%'}, grid: { drawOnChartArea: false}}}},
-        plugins: [roasLabelPlugin]});}
+            x: { ticks: { color: '#4b5563' } },
+            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '留? } },
+            y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
+          }
+        },
+        plugins: [roasLabelPlugin]
+      });
+    }
 
     // 4. Shopping Weekly Chart
     const spWeeklyMap = {};
     monthOnlyGroups.filter(w => w.CampaignType === '?쇳븨寃??).forEach(w => {
       const wLabel = w.Week || '湲고?';
-      if (!spWeeklyMap[wLabel]) spWeeklyMap[wLabel] = { CostNoVat: 0, Rev: 0};
+      if (!spWeeklyMap[wLabel]) spWeeklyMap[wLabel] = { CostNoVat: 0, Rev: 0 };
       spWeeklyMap[wLabel].CostNoVat += w.CostNoVat || 0;
-      spWeeklyMap[wLabel].Rev += w.Revenue || 0;});
+      spWeeklyMap[wLabel].Rev += w.Revenue || 0;
+    });
 
     const spLabels = Object.keys(spWeeklyMap).sort();
     const spRevs = spLabels.map(l => spWeeklyMap[l].Rev);
@@ -1170,28 +1392,34 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         data: {
           labels: spLabels,
           datasets: [
-            { label: '?꾪솚留ㅼ텧??(??', data: spRevs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y'},
-            { label: '珥앷킅怨좊퉬 (VAT?쒖쇅)', data: spCosts, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1, yAxisID: 'y'},
-            { label: 'ROAS (%)', data: spRoases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1'}
-          ]},
+            { label: '?꾪솚留ㅼ텧??(??', data: spRevs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
+            { label: '珥앷킅怨좊퉬 (VAT?쒖쇅)', data: spCosts, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1, yAxisID: 'y' },
+            { label: 'ROAS (%)', data: spRoases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
+          ]
+        },
         options: {
           responsive: true, maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false},
-          plugins: { legend: { labels: { color: '#111827'}}},
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: '#111827' } } },
           scales: {
-            x: { ticks: { color: '#4b5563'}},
-            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '留?}},
-            y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%'}, grid: { drawOnChartArea: false}}}},
-        plugins: [roasLabelPlugin]});}
+            x: { ticks: { color: '#4b5563' } },
+            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '留? } },
+            y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
+          }
+        },
+        plugins: [roasLabelPlugin]
+      });
+    }
 
     // 5. NewProduct Weekly Chart (Metrics: Clicks & ROAS as requested!)
     const npWeeklyMap = {};
     monthOnlyGroups.filter(w => w.CampaignType === '?좎젣?덇???).forEach(w => {
       const wLabel = w.Week || '湲고?';
-      if (!npWeeklyMap[wLabel]) npWeeklyMap[wLabel] = { Clk: 0, CostNoVat: 0, Rev: 0};
+      if (!npWeeklyMap[wLabel]) npWeeklyMap[wLabel] = { Clk: 0, CostNoVat: 0, Rev: 0 };
       npWeeklyMap[wLabel].Clk += w.Clk || 0;
       npWeeklyMap[wLabel].CostNoVat += w.CostNoVat || 0;
-      npWeeklyMap[wLabel].Rev += w.Revenue || 0;});
+      npWeeklyMap[wLabel].Rev += w.Revenue || 0;
+    });
 
     const npLabels = Object.keys(npWeeklyMap).sort();
     const npClks = npLabels.map(l => npWeeklyMap[l].Clk);
@@ -1205,21 +1433,27 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         data: {
           labels: npLabels,
           datasets: [
-            { label: '?대┃??(??', data: npClks, backgroundColor: 'rgba(217, 119, 6, 0.8)', borderColor: '#d97706', borderWidth: 1, yAxisID: 'y'},
-            { label: 'ROAS (%)', data: npRoases, type: 'line', borderColor: '#059669', backgroundColor: '#059669', borderWidth: 3, pointRadius: 5, yAxisID: 'y1'}
-          ]},
+            { label: '?대┃??(??', data: npClks, backgroundColor: 'rgba(217, 119, 6, 0.8)', borderColor: '#d97706', borderWidth: 1, yAxisID: 'y' },
+            { label: 'ROAS (%)', data: npRoases, type: 'line', borderColor: '#059669', backgroundColor: '#059669', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
+          ]
+        },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#111827'}}},
+          plugins: { legend: { labels: { color: '#111827' } } },
           scales: {
-            x: { ticks: { color: '#4b5563'}},
-            y: { position: 'left', ticks: { color: '#4b5563'}},
-            y1: { position: 'right', ticks: { color: '#059669', callback: v => v + '%'}, grid: { drawOnChartArea: false}}}},
-        plugins: [roasLabelPlugin]});}};
+            x: { ticks: { color: '#4b5563' } },
+            y: { position: 'left', ticks: { color: '#4b5563' } },
+            y1: { position: 'right', ticks: { color: '#059669', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
+          }
+        },
+        plugins: [roasLabelPlugin]
+      });
+    }
+  };
 
   // Reusable Table Component Helper
   const setupTable = (config) => {
-    const { tableId, searchId, countId, pageInfoId, prevBtnId, nextBtnId, getRawData, renderRow, pageSize = 15, defaultSort = 'CostNoVat'} = config;
+    const { tableId, searchId, countId, pageInfoId, prevBtnId, nextBtnId, getRawData, renderRow, pageSize = 15, defaultSort = 'CostNoVat' } = config;
 
     let sortCol = defaultSort;
     let sortDir = 'desc';
@@ -1240,7 +1474,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
       if (query) {
         list = list.filter(item => {
-          return Object.values(item).some(v => String(v).toLowerCase().includes(query));});}
+          return Object.values(item).some(v => String(v).toLowerCase().includes(query));
+        });
+      }
 
       list.sort((a, b) => {
         let valA = a[sortCol];
@@ -1248,56 +1484,73 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         
         if (sortCol === 'Ctr') {
           valA = a.Imp > 0 ? a.Clk / a.Imp : 0;
-          valB = b.Imp > 0 ? b.Clk / b.Imp : 0;} else if (sortCol === 'Roas') {
+          valB = b.Imp > 0 ? b.Clk / b.Imp : 0;
+        } else if (sortCol === 'Roas') {
           valA = a.CostNoVat > 0 ? a.Revenue / a.CostNoVat : 0;
-          valB = b.CostNoVat > 0 ? b.Revenue / b.CostNoVat : 0;} else if (sortCol === 'Aov') {
+          valB = b.CostNoVat > 0 ? b.Revenue / b.CostNoVat : 0;
+        } else if (sortCol === 'Aov') {
           valA = a.Conv > 0 ? a.Revenue / a.Conv : 0;
-          valB = b.Conv > 0 ? b.Revenue / b.Conv : 0;} else if (sortCol === 'Cpc') {
+          valB = b.Conv > 0 ? b.Revenue / b.Conv : 0;
+        } else if (sortCol === 'Cpc') {
           valA = a.Clk > 0 ? a.CostNoVat / a.Clk : 0;
-          valB = b.Clk > 0 ? b.CostNoVat / b.Clk : 0;}
+          valB = b.Clk > 0 ? b.CostNoVat / b.Clk : 0;
+        }
 
         if (typeof valA === 'string') {
-          return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);}
-        return sortDir === 'asc' ? (valA || 0) - (valB || 0) : (valB || 0) - (valA || 0);});
+          return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+        return sortDir === 'asc' ? (valA || 0) - (valB || 0) : (valB || 0) - (valA || 0);
+      });
 
       filteredList = list;
       const totalCount = filteredList.length;
       const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
       if (currentPage > totalPages) currentPage = totalPages;
 
-      if (countInfo) countInfo.innerText = `총 ${totalCount.toLocaleString()} 건`;
+      if (countInfo) countInfo.innerText = `총 ${totalCount.toLocaleString()}건`;
 
       const start = (currentPage - 1) * pageSize;
       const pageData = filteredList.slice(start, start + pageSize);
 
       if (tbody) {
         if (pageData.length === 0) {
-          tbody.innerHTML = `<tr > <td colspan="12" style="text-align:center; padding:24px; color:var(--text-muted);">조회된 데이터가 없습니다.</td></tr> `;} else {
-          tbody.innerHTML = pageData.map(item => renderRow(item)).join('');}}
+          tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:24px; color:var(--text-muted);">조회된 데이터가 없습니다.</td></tr>`;
+        } else {
+          tbody.innerHTML = pageData.map(item => renderRow(item)).join('');
+        }
+      }
 
-      if (pageInfo) pageInfo.innerText = `Page ${currentPage} of ${totalPages} `;
+      if (pageInfo) pageInfo.innerText = `Page ${currentPage} of ${totalPages}`;
       if (prevBtn) prevBtn.disabled = currentPage <= 1;
       if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
 
       thList.forEach(th => {
         th.classList.remove('sort-asc', 'sort-desc');
         if (th.getAttribute('data-sort') === sortCol) {
-          th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');}});};
+          th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+        }
+      });
+    };
 
-    if (searchInput) searchInput.addEventListener('input', () => { currentPage = 1; updateTable();});
-    if (prevBtn) prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; updateTable();}});
-    if (nextBtn) nextBtn.addEventListener('click', () => { currentPage++; updateTable();});
+    if (searchInput) searchInput.addEventListener('input', () => { currentPage = 1; updateTable(); });
+    if (prevBtn) prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; updateTable(); } });
+    if (nextBtn) nextBtn.addEventListener('click', () => { currentPage++; updateTable(); });
 
     thList.forEach(th => {
       th.addEventListener('click', () => {
         const col = th.getAttribute('data-sort');
         if (sortCol === col) {
-          sortDir = sortDir === 'asc' ? 'desc' : 'asc';} else {
+          sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
           sortCol = col;
-          sortDir = 'desc';}
-        updateTable();});});
+          sortDir = 'desc';
+        }
+        updateTable();
+      });
+    });
 
-    return updateTable;};
+    return updateTable;
+  };
 
   let updatePowerlinkKwTable = null;
   let updateShoppingProdTable = null;
@@ -1306,10 +1559,12 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
 
   const updateShoppingFilteredTables = () => {
     if (updateShoppingProdTable) updateShoppingProdTable();
-    if (updateShoppingKwTable) updateShoppingKwTable();};
+    if (updateShoppingKwTable) updateShoppingKwTable();
+  };
 
   const updateNewproductFilteredTables = () => {
-    if (updateNewproductKwTable) updateNewproductKwTable();};
+    if (updateNewproductKwTable) updateNewproductKwTable();
+  };
 
   // Main Tables Component Handler
   const initTables = (monthOnlyGroups, filteredGroups, filteredKw, filteredProd) => {
@@ -1339,8 +1594,12 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       btnToggleChips.onclick = () => {
         chipBox.classList.toggle('expanded');
         if (chipBox.classList.contains('expanded')) {
-          btnToggleChips.innerText = '??愿묎퀬洹몃９ ?꾪꽣 ?묎린';} else {
-          btnToggleChips.innerText = '??愿묎퀬洹몃９ ?꾪꽣 ?꾩껜蹂닿린 / ?쇱튂湲?;}};}
+          btnToggleChips.innerText = '??愿묎퀬洹몃９ ?꾪꽣 ?묎린';
+        } else {
+          btnToggleChips.innerText = '??愿묎퀬洹몃９ ?꾪꽣 ?꾩껜蹂닿린 / ?쇱튂湲?;
+        }
+      };
+    }
 
     // 4. Powerlink PC / MO Campaign Table with Shaded Summaries
     renderPowerlinkDeviceTable(filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'));
@@ -1360,24 +1619,30 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       getRawData: () => {
         let plList = filteredKw.filter(k => k.CampaignType === '?뚯썙留곹겕');
         if (powerlinkActiveChips.size > 0) {
-          plList = plList.filter(k => powerlinkActiveChips.has(k.AdGroupCat));}
+          plList = plList.filter(k => powerlinkActiveChips.has(k.AdGroupCat));
+        }
         if (powerlinkActiveSearchTypes.size > 0) {
-          plList = plList.filter(k => powerlinkActiveSearchTypes.has(k.SearchType));}
+          plList = plList.filter(k => powerlinkActiveSearchTypes.has(k.SearchType));
+        }
         if (powerlinkKwDevice !== 'ALL') {
-          plList = plList.filter(k => getDeviceType(k) === powerlinkKwDevice);}
+          plList = plList.filter(k => getDeviceType(k) === powerlinkKwDevice);
+        }
         // Combine duplicate keyword names (per Keyword + Device)
         const combined = {};
         plList.forEach(k => {
           const dev = getDeviceType(k);
           const kwKey = k.Keyword + '|' + dev;
           if (!combined[kwKey]) {
-            combined[kwKey] = { Keyword: k.Keyword, Device: dev, SearchType: k.SearchType || '-', Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};}
+            combined[kwKey] = { Keyword: k.Keyword, Device: dev, SearchType: k.SearchType || '-', Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+          }
           combined[kwKey].Imp += k.Imp || 0;
           combined[kwKey].Clk += k.Clk || 0;
           combined[kwKey].CostNoVat += k.CostNoVat || 0;
           combined[kwKey].Conv += k.Conv || 0;
-          combined[kwKey].Revenue += k.Revenue || 0;});
-        return Object.values(combined);},
+          combined[kwKey].Revenue += k.Revenue || 0;
+        });
+        return Object.values(combined);
+      },
       defaultSort: 'CostNoVat',
       renderRow: (k) => {
         const ctr = k.Imp > 0 ? (k.Clk / k.Imp) * 100 : 0;
@@ -1385,7 +1650,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         const aov = k.Conv > 0 ? k.Revenue / k.Conv : 0;
         const cpc = k.Clk > 0 ? k.CostNoVat / k.Clk : 0;
         return `
-  <tr >
+          <tr>
             <td><strong>${k.Keyword}</strong></td>
             <td><span class="kpi-badge">${k.Device || '-'}</span></td>
             <td><span class="kpi-badge">${k.SearchType || '-'}</span></td>
@@ -1399,7 +1664,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
             <td class="number-col">${fmtCurr(aov)}</td>
             <td class="number-col">${fmtCurr(cpc)}</td>
           </tr>
-  `;}});
+        `;
+      }
+    });
     updatePowerlinkKwTable();
 
     // Event Listeners for Powerlink Keywords Device Filter
@@ -1409,7 +1676,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         kwDevBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         powerlinkKwDevice = btn.getAttribute('data-device');
-        updatePowerlinkKwTable();});});
+        updatePowerlinkKwTable();
+      });
+    });
 
     // 7. Shopping AdGroup Categories & Chip Filters
     const spGroups = filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'tableShoppingProd',
@@ -1422,7 +1691,8 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         let list = filteredProd.filter(p => p.CampaignType === '?쇳븨寃??);
         if (shoppingActiveChips.size > 0) list = list.filter(p => shoppingActiveChips.has(p.AdGroupCat));
         if (shoppingProdDevice !== 'ALL') list = list.filter(p => getDeviceType(p) === shoppingProdDevice);
-        return list;},
+        return list;
+      },
       defaultSort: 'Revenue',
       renderRow: (p) => {
         const ctr = p.Imp > 0 ? (p.Clk / p.Imp) * 100 : 0;
@@ -1430,7 +1700,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         const aov = p.Conv > 0 ? p.Revenue / p.Conv : 0;
         const cpc = p.Clk > 0 ? p.CostNoVat / p.Clk : 0;
         return `
-  <tr >
+          <tr>
             <td><span class="kpi-badge">${p.AdGroupCat || '-'}</span></td>
             <td><strong>${p.ProductName}</strong></td>
             <td><span class="kpi-badge">${getDeviceType(p)}</span></td>
@@ -1444,7 +1714,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
             <td class="number-col">${fmtCurr(aov)}</td>
             <td class="number-col">${fmtCurr(cpc)}</td>
           </tr>
-  `;}});
+        `;
+      }
+    });
     updateShoppingProdTable();
 
     // Event Listeners for Shopping Products Device Filter
@@ -1454,7 +1726,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         spProdDevBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         shoppingProdDevice = btn.getAttribute('data-device');
-        updateShoppingProdTable();});});
+        updateShoppingProdTable();
+      });
+    });
 
     // 9. Shopping Keywords Table (Combine Duplicates per Keyword + Device)
     updateShoppingKwTable = setupTable({
@@ -1465,26 +1739,31 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       prevBtnId: 'prevShoppingKw',
       nextBtnId: 'nextShoppingKw',
       getRawData: () => {
-        let list = filteredKw.filter(k => k.CampaignType === '?뚯썙留곹겕'ALL') list = list.filter(k => getDeviceType(k) === shoppingKwDevice);
+        let list = filteredKw.filter(k => k.CampaignType === '쇼핑검색');
+        if (shoppingActiveChips.size > 0) list = list.filter(k => shoppingActiveChips.has(k.AdGroupCat));
+        if (shoppingKwDevice !== 'ALL') list = list.filter(k => getDeviceType(k) === shoppingKwDevice);
         const combined = {};
         list.forEach(k => {
           const dev = getDeviceType(k);
           const kwKey = k.Keyword + '|' + dev;
           if (!combined[kwKey]) {
-            combined[kwKey] = { Keyword: k.Keyword, Device: dev, AdGroupCat: k.AdGroupCat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};}
+            combined[kwKey] = { Keyword: k.Keyword, Device: dev, AdGroupCat: k.AdGroupCat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+          }
           combined[kwKey].Imp += k.Imp || 0;
           combined[kwKey].Clk += k.Clk || 0;
           combined[kwKey].CostNoVat += k.CostNoVat || 0;
           combined[kwKey].Conv += k.Conv || 0;
-          combined[kwKey].Revenue += k.Revenue || 0;});
-        return Object.values(combined);},
+          combined[kwKey].Revenue += k.Revenue || 0;
+        });
+        return Object.values(combined);
+      },
       defaultSort: 'Revenue',
       renderRow: (k) => {
         const ctr = k.Imp > 0 ? (k.Clk / k.Imp) * 100 : 0;
         const roas = k.CostNoVat > 0 ? (k.Revenue / k.CostNoVat) * 100 : 0;
         const aov = k.Conv > 0 ? k.Revenue / k.Conv : 0;
         return `
-  <tr >
+          <tr>
             <td><span class="kpi-badge">${k.AdGroupCat || '-'}</span></td>
             <td><strong>${k.Keyword}</strong></td>
             <td><span class="kpi-badge">${k.Device || '-'}</span></td>
@@ -1497,7 +1776,9 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
             <td class="number-col"><span class="roas-badge ${getRoasBadgeClass(roas)}">${fmtRoas(roas)}</span></td>
             <td class="number-col">${fmtCurr(aov)}</td>
           </tr>
-  `;}});
+        `;
+      }
+    });
     updateShoppingKwTable();
 
     // Event Listeners for Shopping Keywords Device Filter
@@ -1507,36 +1788,45 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
         spKwDevBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         shoppingKwDevice = btn.getAttribute('data-device');
-        updateShoppingKwTable();});});
+        updateShoppingKwTable();
+      });
+    });
 
     // 10. NewProduct Tab: AdGroup Categories & Chips Filter
-    const npGroups = filteredGroups.filter(g => g.CampaignType === '?뚯썙留곹겕'tableNewproductKw',
+    const npGroups = filteredGroups.filter(g => g.CampaignType === '신제품검색');
+    renderNewproductAdGroupCats(npGroups);
+
+    updateNewproductKwTable = setupTable({
+      tableId: 'tableNewproductKw',
       searchId: 'searchNewproductKw',
       countId: 'countNewproductKw',
       pageInfoId: 'pageInfoNewproductKw',
       prevBtnId: 'prevNewproductKw',
       nextBtnId: 'nextNewproductKw',
       getRawData: () => {
-        let list = filteredKw.filter(k => k.CampaignType === '?뚯썙留곹겕'?좎젣??)));
+        let list = filteredKw.filter(k => k.CampaignType === '신제품검색');
         if (newproductActiveChips.size > 0) list = list.filter(k => newproductActiveChips.has(k.AdGroupCat));
         const combined = {};
         list.forEach(k => {
           const kw = k.Keyword;
           if (!combined[kw]) {
-            combined[kw] = { Keyword: kw, AdGroupCat: k.AdGroupCat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};}
+            combined[kw] = { Keyword: kw, AdGroupCat: k.AdGroupCat, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+          }
           combined[kw].Imp += k.Imp || 0;
           combined[kw].Clk += k.Clk || 0;
           combined[kw].CostNoVat += k.CostNoVat || 0;
           combined[kw].Conv += k.Conv || 0;
-          combined[kw].Revenue += k.Revenue || 0;});
-        return Object.values(combined);},
+          combined[kw].Revenue += k.Revenue || 0;
+        });
+        return Object.values(combined);
+      },
       defaultSort: 'Clk',
       renderRow: (k) => {
         const ctr = k.Imp > 0 ? (k.Clk / k.Imp) * 100 : 0;
         const roas = k.CostNoVat > 0 ? (k.Revenue / k.CostNoVat) * 100 : 0;
         const aov = k.Conv > 0 ? k.Revenue / k.Conv : 0;
         return `
-  <tr >
+          <tr>
             <td><span class="kpi-badge">${k.AdGroupCat || '-'}</span></td>
             <td><strong>${k.Keyword}</strong></td>
             <td class="number-col">${fmtNum(k.Imp)}</td>
@@ -1548,8 +1838,11 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
             <td class="number-col"><span class="roas-badge ${getRoasBadgeClass(roas)}">${fmtRoas(roas)}</span></td>
             <td class="number-col">${fmtCurr(aov)}</td>
           </tr>
-  `;}});
-    updateNewproductKwTable();};
+        `;
+      }
+    });
+    updateNewproductKwTable();
+  };
 
   // Master Dashboard Routine
   const updateDashboard = () => {
@@ -1562,7 +1855,8 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
     renderTabSpecificKPIs(filteredGroups);
     renderAllTabInsights(filteredGroups);
     renderCharts(monthOnlyGroups); // Fixed to month total for top charts
-    initTables(monthOnlyGroups, filteredGroups, filteredKw, filteredProd);};
+    initTables(monthOnlyGroups, filteredGroups, filteredKw, filteredProd);
+  };
 
   // Helper: Daily Performance Table Renderer
   const renderDailyTable = (tableId, groups) => {
@@ -1573,18 +1867,21 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
     groups.forEach(g => {
       const d = g.Date || '기타';
       if (!dateMap[d]) {
-        dateMap[d] = { Date: d, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0};}
+        dateMap[d] = { Date: d, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+      }
       dateMap[d].Imp += g.Imp || 0;
       dateMap[d].Clk += g.Clk || 0;
       dateMap[d].CostNoVat += g.CostNoVat || 0;
       dateMap[d].Conv += g.Conv || 0;
-      dateMap[d].Revenue += g.Revenue || 0;});
+      dateMap[d].Revenue += g.Revenue || 0;
+    });
 
     const dateList = Object.values(dateMap).sort((a, b) => a.Date.localeCompare(b.Date));
 
     if (dateList.length === 0) {
-      tbody.innerHTML = `<tr > <td colspan="10" style="text-align:center; padding:24px; color:var(--text-muted);">조회된 데이터가 없습니다.</td></tr> `;
-      return;}
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:24px; color:var(--text-muted);">조회된 데이터가 없습니다.</td></tr>`;
+      return;
+    }
 
     const html = dateList.map(item => {
       const ctr = item.Imp > 0 ? (item.Clk / item.Imp) * 100 : 0;
@@ -1593,7 +1890,7 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
       const cpc = item.Clk > 0 ? item.CostNoVat / item.Clk : 0;
 
       return `
-  <tr >
+        <tr>
           <td><strong>📅 ${item.Date}</strong></td>
           <td class="number-col">${fmtNum(item.Imp)}</td>
           <td class="number-col">${fmtNum(item.Clk)}</td>
@@ -1605,14 +1902,18 @@ const mTitle = currentMonth === 'ALL' ? '?꾩껜' : `${currentMonth}??;
           <td class="number-col">${fmtCurr(aov)}</td>
           <td class="number-col">${fmtCurr(cpc)}</td>
         </tr>
-  `;}).join('');
+      `;
+    }).join('');
 
-    tbody.innerHTML = html;};
+    tbody.innerHTML = html;
+  };
 
   // Initial Execution
   if (checkAuth()) {
     updateWeekOptions();
     updateDateOptions();
-    updateDashboard();}});
+    updateDashboard();
+  }
+});
 
 
