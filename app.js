@@ -312,17 +312,17 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('kpiTotalCostNoVat').innerText = fmtCurr(costNoVat);
     document.getElementById('kpiCostVat').innerText = fmtCurr(costVat);
     document.getElementById('kpiTotalRevenue').innerText = fmtCurr(rev);
-    document.getElementById('kpiTotalConv').innerText = fmtNum(conv) + '嫄?;
+    document.getElementById('kpiTotalConv').innerText = fmtNum(conv) + '건';
     document.getElementById('kpiRoas').innerText = fmtRoas(roas);
     document.getElementById('kpiAov').innerText = fmtCurr(aov);
-    document.getElementById('kpiTotalClicks').innerText = fmtNum(clk) + '??;
+    document.getElementById('kpiTotalClicks').innerText = fmtNum(clk) + '회';
     document.getElementById('kpiCtr').innerText = fmtPct(ctr);
     document.getElementById('kpiCpc').innerText = fmtCurr(cpc);
   };
 
   // Render Insights Comments
   const renderAllTabInsights = (allGroups) => {
-    const filterText = currentMonth === 'ALL' ? '?꾩껜 湲곌컙' : `${currentMonth}??${currentWeek === 'ALL' ? '?꾩껜' : currentWeek}`;
+    const filterText = currentMonth === 'ALL' ? '전체 기간' : `${currentMonth}월 ${currentWeek === 'ALL' ? '전체' : currentWeek}`;
 
     // 1. Overview Insights
     const ovBox = document.getElementById('overviewInsightList');
