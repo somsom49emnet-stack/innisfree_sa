@@ -9,38 +9,58 @@ document.addEventListener('DOMContentLoaded', () => {
   const pwdError = document.getElementById('passwordErrorMsg');
 
   const checkAuth = () => {
-    if (sessionStorage.getItem('sa_dashboard_authed') === 'true') {
-      if (overlay) overlay.style.display = 'none';
-      return true;
+    return sessionStorage.getItem('sa_dashboard_authed') === 'true';
+  };
+
+  const unlockDashboard = () => {
+    if (overlay) {
+      overlay.style.opacity = '0';
+      overlay.style.transition = 'opacity 0.25s ease';
+      setTimeout(() => { overlay.style.display = 'none'; }, 250);
     }
-    return false;
+    loadDataAndInit();
   };
 
   const tryAuth = () => {
     if (!pwdInput) return;
-    if (pwdInput.value === SECRET_PASS) {
+    const val = (pwdInput.value || '').trim();
+    if (val === SECRET_PASS) {
       sessionStorage.setItem('sa_dashboard_authed', 'true');
-      if (overlay) {
-        overlay.style.opacity = '0';
-        overlay.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => { overlay.style.display = 'none'; }, 300);
-      }
-      loadDataAndInit();
+      unlockDashboard();
     } else {
-      if (pwdError) pwdError.style.display = 'block';
+      if (pwdError) {
+        pwdError.style.display = 'block';
+      }
       pwdInput.value = '';
       pwdInput.focus();
     }
   };
 
-  if (!checkAuth()) {
-    if (pwdBtn) pwdBtn.addEventListener('click', tryAuth);
-    if (pwdInput) {
-      pwdInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') tryAuth();
-      });
-      setTimeout(() => pwdInput.focus(), 100);
+  // Event Binding for Password Auth
+  if (pwdBtn) {
+    pwdBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      tryAuth();
+    });
+  }
+
+  if (pwdInput) {
+    pwdInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        tryAuth();
+      }
+    });
+  }
+
+  if (checkAuth()) {
+    if (overlay) overlay.style.display = 'none';
+  } else {
+    if (overlay) {
+      overlay.style.display = 'flex';
+      overlay.style.opacity = '1';
     }
+    setTimeout(() => { if (pwdInput) pwdInput.focus(); }, 100);
   }
 
   let currentMonth = '8';
@@ -1846,20 +1866,28 @@ document.addEventListener('DOMContentLoaded', () => {
       updateDashboard();
       return;
     }
-    if (document.getElementById('dashboardDataScript')) return;
 
-    const script = document.createElement('script');
-    script.id = 'dashboardDataScript';
-    script.src = 'dashboard_data.js';
-    script.onload = () => {
-      updateWeekOptions();
-      updateDateOptions();
-      updateDashboard();
-    };
-    script.onerror = () => {
-      console.error('dashboard_data.js 로드 실패');
-    };
-    document.body.appendChild(script);
+    let script = document.getElementById('dashboardDataScript');
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'dashboardDataScript';
+      script.src = 'dashboard_data.js';
+      script.onload = () => {
+        updateWeekOptions();
+        updateDateOptions();
+        updateDashboard();
+      };
+      script.onerror = () => {
+        console.error('dashboard_data.js 로드 실패');
+      };
+      document.body.appendChild(script);
+    } else {
+      script.onload = () => {
+        updateWeekOptions();
+        updateDateOptions();
+        updateDashboard();
+      };
+    }
   };
 
   // Initial Execution
