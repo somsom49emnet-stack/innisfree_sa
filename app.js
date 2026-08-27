@@ -257,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const targetContent = document.getElementById(activeTab);
       if (targetContent) targetContent.classList.add('active');
 
-      renderTabSpecificKPIs(filterList(getData().groups));
+      updateDashboard();
 
       setTimeout(() => {
         Object.values(charts).forEach(chart => chart && chart.resize());
@@ -798,7 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Powerlink TOP 10 Keywords Table
   const renderPowerlinkTop10Kw = (plKw) => {
-    const tbody = document.querySelector('#tablePowerlinkTop10Kw tbody');
+    const tbody = document.querySelector('#tablePowerlinkKwTop10 tbody') || document.querySelector('#tablePowerlinkTop10Kw tbody');
     if (!tbody) return;
 
     let filtered = plKw;
