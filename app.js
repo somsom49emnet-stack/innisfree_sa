@@ -254,7 +254,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       btn.classList.add('active');
       activeTab = btn.getAttribute('data-tab');
-      document.getElementById(activeTab).classList.add('active');
+      const targetContent = document.getElementById(activeTab);
+      if (targetContent) targetContent.classList.add('active');
 
       renderTabSpecificKPIs(filterList(getData().groups));
 
@@ -264,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Render Top KPI Summary Cards
+  // Render Top KPI Summary Cards (Dynamic per Active Tab!)
   const renderTabSpecificKPIs = (filteredGroups) => {
     let targetGroups = filteredGroups;
     let badgeText = '전체 캠페인';
@@ -299,15 +300,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const badgeEl = document.getElementById('kpiBadgeTab');
     if (badgeEl) badgeEl.innerText = badgeText;
 
-    document.getElementById('kpiTotalCostNoVat').innerText = fmtCurr(costNoVat);
-    document.getElementById('kpiCostVat').innerText = fmtCurr(costVat);
-    document.getElementById('kpiTotalRevenue').innerText = fmtCurr(rev);
-    document.getElementById('kpiTotalConv').innerText = fmtNum(conv) + '건';
-    document.getElementById('kpiRoas').innerText = fmtRoas(roas);
-    document.getElementById('kpiAov').innerText = fmtCurr(aov);
-    document.getElementById('kpiTotalClicks').innerText = fmtNum(clk) + '회';
-    document.getElementById('kpiCtr').innerText = fmtPct(ctr);
-    document.getElementById('kpiCpc').innerText = fmtCurr(cpc);
+    const setElemText = (id, txt) => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = txt;
+    };
+
+    setElemText('kpiTotalCostNoVat', fmtCurr(costNoVat));
+    setElemText('kpiCostVat', fmtCurr(costVat));
+    setElemText('kpiTotalRevenue', fmtCurr(rev));
+    setElemText('kpiTotalConv', fmtNum(conv) + '건');
+    setElemText('kpiRoas', fmtRoas(roas));
+    setElemText('kpiAov', fmtCurr(aov));
+    setElemText('kpiTotalClicks', fmtNum(clk) + '회');
+    setElemText('kpiCtr', fmtPct(ctr));
+    setElemText('kpiCpc', fmtCurr(cpc));
   };
 
   // Render Insights Comments
@@ -696,26 +702,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Powerlink Device Table (PC vs MO)
   const renderPowerlinkDeviceTable = (plGroups) => {
-    const tbody = document.querySelector('#tablePowerlinkDevice tbody');
+    const tbody = document.querySelector('#tablePowerlinkDeviceCampaign tbody') || document.querySelector('#tablePowerlinkDevice tbody');
     if (!tbody) return;
 
-    let totalMo = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+    const campMap = {};
     let totalPc = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+    let totalMo = { Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
 
-    plGroups.forEach(item => {
-      const dev = getDeviceType(item);
-      if (dev === 'MO') {
-        totalMo.Imp += item.Imp || 0;
-        totalMo.Clk += item.Clk || 0;
-        totalMo.CostNoVat += item.CostNoVat || 0;
-        totalMo.Conv += item.Conv || 0;
-        totalMo.Revenue += item.Revenue || 0;
+    plGroups.forEach(g => {
+      const cName = g.Campaign || '미지정';
+      if (!campMap[cName]) {
+        campMap[cName] = { Campaign: cName, Imp: 0, Clk: 0, CostNoVat: 0, Conv: 0, Revenue: 0 };
+      }
+      campMap[cName].Imp += g.Imp || 0;
+      campMap[cName].Clk += g.Clk || 0;
+      campMap[cName].CostNoVat += g.CostNoVat || 0;
+      campMap[cName].Conv += g.Conv || 0;
+      campMap[cName].Revenue += g.Revenue || 0;
+
+      const isMo = cName.toUpperCase().includes('MO') || cName.includes('모바일');
+      if (isMo) {
+        totalMo.Imp += g.Imp || 0; totalMo.Clk += g.Clk || 0; totalMo.CostNoVat += g.CostNoVat || 0; totalMo.Conv += g.Conv || 0; totalMo.Revenue += g.Revenue || 0;
       } else {
-        totalPc.Imp += item.Imp || 0;
-        totalPc.Clk += item.Clk || 0;
-        totalPc.CostNoVat += item.CostNoVat || 0;
-        totalPc.Conv += item.Conv || 0;
-        totalPc.Revenue += item.Revenue || 0;
+        totalPc.Imp += g.Imp || 0; totalPc.Clk += g.Clk || 0; totalPc.CostNoVat += g.CostNoVat || 0; totalPc.Conv += g.Conv || 0; totalPc.Revenue += g.Revenue || 0;
       }
     });
 
@@ -758,9 +767,9 @@ document.addEventListener('DOMContentLoaded', () => {
       </tr>
     `;
 
-    html += plGroups.map(item => {
-      const dev = getDeviceType(item);
-      const isMo = dev === 'MO';
+    const list = Object.values(campMap).sort((a, b) => b.CostNoVat - a.CostNoVat);
+    html += list.map(item => {
+      const isMo = item.Campaign.toUpperCase().includes('MO') || item.Campaign.includes('모바일');
       const tag = isMo ? '<span class="tag-mo">MO</span>' : '<span class="tag-pc">PC</span>';
       const ctr = item.Imp > 0 ? (item.Clk / item.Imp) * 100 : 0;
       const roas = item.CostNoVat > 0 ? (item.Revenue / item.CostNoVat) * 100 : 0;
@@ -816,17 +825,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (powerlinkTopCategory === 'Revenue') {
       list.sort((a, b) => b.Revenue - a.Revenue);
     } else if (powerlinkTopCategory === 'Roas') {
-      list = list.filter(a => a.CostNoVat >= 100000).sort((a, b) => {
+      list.sort((a, b) => b.CostNoVat - a.CostNoVat);
+      const top20Spend = list.slice(0, 20);
+      top20Spend.sort((a, b) => {
         const roasA = a.CostNoVat > 0 ? (a.Revenue / a.CostNoVat) : 0;
         const roasB = b.CostNoVat > 0 ? (b.Revenue / b.CostNoVat) : 0;
         return roasB - roasA;
       });
+      list = top20Spend;
     } else if (powerlinkTopCategory === 'LowRoas') {
-      list = list.filter(a => a.CostNoVat >= 200000).sort((a, b) => {
-        const roasA = a.CostNoVat > 0 ? (a.Revenue / a.CostNoVat) : 0;
-        const roasB = b.CostNoVat > 0 ? (b.Revenue / b.CostNoVat) : 0;
-        return roasA - roasB;
-      });
+      list = list.filter(item => {
+        const roas = item.CostNoVat > 0 ? (item.Revenue / item.CostNoVat) * 100 : 0;
+        return item.CostNoVat > 0 && roas < 500;
+      }).sort((a, b) => b.CostNoVat - a.CostNoVat);
     }
 
     const top10 = list.slice(0, 10);
@@ -866,7 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => {
       top10CategoryBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      powerlinkTopCategory = btn.getAttribute('data-cat');
+      powerlinkTopCategory = btn.getAttribute('data-top');
       const plKw = filterList(getData().keywords.filter(k => k.CampaignType === '파워링크'));
       renderPowerlinkTop10Kw(plKw);
     });
@@ -889,71 +900,86 @@ document.addEventListener('DOMContentLoaded', () => {
     const tbodyDown = document.querySelector('#tablePowerlinkKwGrowthDown tbody');
     if (!tbodyUp || !tbodyDown) return;
 
-    const curMonthKw = filterList(rawData.keywords.filter(k => k.CampaignType === '파워링크'));
-    const curKwMap = {};
-    curMonthKw.forEach(k => {
+    const plKeywords = rawData.keywords.filter(k => k.CampaignType === '파워링크');
+    
+    // Filter to Top 30 Spend Keywords (Keyword + Device)
+    const totalKwSpend = {};
+    plKeywords.forEach(k => {
       const dev = getDeviceType(k);
-      const kwKey = k.Keyword + '|' + dev;
-      if (!curKwMap[kwKey]) {
-        curKwMap[kwKey] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
-      }
-      curKwMap[kwKey].CostNoVat += k.CostNoVat || 0;
-      curKwMap[kwKey].Revenue += k.Revenue || 0;
+      const key = k.Keyword + '|' + dev;
+      if (!totalKwSpend[key]) totalKwSpend[key] = 0;
+      totalKwSpend[key] += k.CostNoVat || 0;
     });
 
-    const prevKwMap = {};
-    if (powerlinkGrowthCategory === 'wow') {
-      const curMonthWeeks = Array.from(new Set(curMonthKw.map(g => g.Week))).sort();
-      const latestWeek = curMonthWeeks[curMonthWeeks.length - 1];
-      const allWeeks = Array.from(new Set(rawData.keywords.filter(k => k.CampaignType === '파워링크').map(g => g.Week))).sort();
+    const top30KwSet = new Set(
+      Object.keys(totalKwSpend).sort((a, b) => totalKwSpend[b] - totalKwSpend[a]).slice(0, 30)
+    );
+
+    const isWow = powerlinkGrowthCategory === 'wow';
+    const kwCurMap = {};
+    const kwPrevMap = {};
+
+    if (isWow) {
+      const allWeeks = Array.from(new Set(plKeywords.map(k => k.Week))).sort();
+      const latestWeek = currentWeek !== 'ALL' ? currentWeek : allWeeks[allWeeks.length - 1];
       const latestIdx = allWeeks.indexOf(latestWeek);
       const prevWeek = latestIdx > 0 ? allWeeks[latestIdx - 1] : null;
 
-      if (prevWeek) {
-        rawData.keywords.filter(k => k.CampaignType === '파워링크' && k.Week === prevWeek).forEach(k => {
-          const dev = getDeviceType(k);
-          const kwKey = k.Keyword + '|' + dev;
-          if (!prevKwMap[kwKey]) {
-            prevKwMap[kwKey] = { CostNoVat: 0, Revenue: 0 };
-          }
-          prevKwMap[kwKey].CostNoVat += k.CostNoVat || 0;
-          prevKwMap[kwKey].Revenue += k.Revenue || 0;
-        });
-      }
+      plKeywords.forEach(k => {
+        const dev = getDeviceType(k);
+        const key = k.Keyword + '|' + dev;
+        if (!top30KwSet.has(key)) return;
+
+        if (k.Week === latestWeek) {
+          if (!kwCurMap[key]) kwCurMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
+          kwCurMap[key].CostNoVat += k.CostNoVat || 0;
+          kwCurMap[key].Revenue += k.Revenue || 0;
+        }
+        if (prevWeek && k.Week === prevWeek) {
+          if (!kwPrevMap[key]) kwPrevMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
+          kwPrevMap[key].CostNoVat += k.CostNoVat || 0;
+          kwPrevMap[key].Revenue += k.Revenue || 0;
+        }
+      });
     } else {
       const curM = currentMonth !== 'ALL' ? parseInt(currentMonth) : 8;
       const prevM = curM > 1 ? curM - 1 : 12;
 
-      rawData.keywords.filter(k => k.CampaignType === '파워링크' && String(k.Month) === String(prevM)).forEach(k => {
+      plKeywords.forEach(k => {
         const dev = getDeviceType(k);
-        const kwKey = k.Keyword + '|' + dev;
-        if (!prevKwMap[kwKey]) {
-          prevKwMap[kwKey] = { CostNoVat: 0, Revenue: 0 };
+        const key = k.Keyword + '|' + dev;
+        if (!top30KwSet.has(key)) return;
+
+        if (String(k.Month) === String(curM)) {
+          if (!kwCurMap[key]) kwCurMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
+          kwCurMap[key].CostNoVat += k.CostNoVat || 0;
+          kwCurMap[key].Revenue += k.Revenue || 0;
         }
-        prevKwMap[kwKey].CostNoVat += k.CostNoVat || 0;
-        prevKwMap[kwKey].Revenue += k.Revenue || 0;
+        if (String(k.Month) === String(prevM)) {
+          if (!kwPrevMap[key]) kwPrevMap[key] = { Keyword: k.Keyword, Device: dev, CostNoVat: 0, Revenue: 0 };
+          kwPrevMap[key].CostNoVat += k.CostNoVat || 0;
+          kwPrevMap[key].Revenue += k.Revenue || 0;
+        }
       });
     }
 
     const growthList = [];
-    Object.keys(curKwMap).forEach(kwKey => {
-      const cur = curKwMap[kwKey];
-      const prev = prevKwMap[kwKey];
-      if (cur.CostNoVat >= 50000 || (prev && prev.CostNoVat >= 50000)) {
-        const curRoas = cur.CostNoVat > 0 ? (cur.Revenue / cur.CostNoVat) * 100 : 0;
-        const prevRoas = prev && prev.CostNoVat > 0 ? (prev.Revenue / prev.CostNoVat) * 100 : 0;
-        const diff = curRoas - prevRoas;
+    Object.keys(kwCurMap).forEach(key => {
+      const cur = kwCurMap[key];
+      const prev = kwPrevMap[key];
+      const curRoas = cur.CostNoVat > 0 ? (cur.Revenue / cur.CostNoVat) * 100 : 0;
+      const prevRoas = prev && prev.CostNoVat > 0 ? (prev.Revenue / prev.CostNoVat) * 100 : 0;
+      const diff = curRoas - prevRoas;
 
-        growthList.push({
-          Keyword: cur.Keyword,
-          Device: cur.Device,
-          CurRoas: curRoas,
-          PrevRoas: prevRoas,
-          Diff: diff,
-          CostNoVat: cur.CostNoVat,
-          Revenue: cur.Revenue
-        });
-      }
+      growthList.push({
+        Keyword: cur.Keyword,
+        Device: cur.Device,
+        CurRoas: curRoas,
+        PrevRoas: prevRoas,
+        Diff: diff,
+        CostNoVat: cur.CostNoVat,
+        Revenue: cur.Revenue
+      });
     });
 
     const upList = growthList.filter(item => item.Diff >= 0).sort((a, b) => b.Diff - a.Diff).slice(0, 10);
@@ -1237,34 +1263,74 @@ document.addEventListener('DOMContentLoaded', () => {
       return weeks.map(w => map[w]);
     };
 
-    // 1. Overview Weekly Chart
-    const ovData = getWeeklyAgg(monthOnlyGroups);
-    const ovCtx = document.getElementById('chartWeeklyOverview');
-    if (ovCtx) {
-      if (charts.overview) charts.overview.destroy();
-      charts.overview = new Chart(ovCtx, {
+    // 1. Overview Dual-Axis Chart
+    const weekMap = {};
+    monthOnlyGroups.forEach(w => {
+      const weekLabel = w.Week || '기타';
+      if (!weekMap[weekLabel]) weekMap[weekLabel] = { CostNoVat: 0, Rev: 0 };
+      weekMap[weekLabel].CostNoVat += w.CostNoVat || 0;
+      weekMap[weekLabel].Rev += w.Revenue || 0;
+    });
+
+    const labels = Object.keys(weekMap).sort();
+    const costs = labels.map(l => weekMap[l].CostNoVat);
+    const revs = labels.map(l => weekMap[l].Rev);
+    const roases = labels.map(l => weekMap[l].CostNoVat > 0 ? Math.round((weekMap[l].Rev / weekMap[l].CostNoVat) * 100) : 0);
+
+    if (charts.overview) charts.overview.destroy();
+    const ctxOverview = document.getElementById('chartWeeklyOverview');
+    if (ctxOverview) {
+      charts.overview = new Chart(ctxOverview, {
         type: 'bar',
         data: {
-          labels: weeks,
+          labels: labels,
           datasets: [
-            { label: '광고비 (원)', data: ovData.map(d => d.CostNoVat), backgroundColor: 'rgba(217, 119, 6, 0.75)', borderRadius: 6, yAxisID: 'y' },
-            { label: '전환매출액 (원)', data: ovData.map(d => d.Revenue), backgroundColor: 'rgba(5, 150, 105, 0.75)', borderRadius: 6, yAxisID: 'y' },
-            { label: 'ROAS (%)', data: ovData.map(d => d.CostNoVat > 0 ? (d.Revenue / d.CostNoVat) * 100 : 0), type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
+            { label: '전환매출액(원)', data: revs, backgroundColor: 'rgba(5, 150, 105, 0.8)', borderColor: '#059669', borderWidth: 1, yAxisID: 'y' },
+            { label: '총광고비 (VAT제외)', data: costs, backgroundColor: 'rgba(0, 102, 51, 0.7)', borderColor: '#006633', borderWidth: 1, yAxisID: 'y' },
+            { label: 'ROAS (%)', data: roases, type: 'line', borderColor: '#d97706', backgroundColor: '#d97706', borderWidth: 3, pointRadius: 5, yAxisID: 'y1' }
           ]
         },
-        plugins: [roasLabelPlugin],
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: '#111827' } } },
           scales: {
-            y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
-            y1: { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
+            x: { ticks: { color: '#4b5563' } },
+            y: { position: 'left', ticks: { color: '#4b5563', callback: v => (v / 10000).toLocaleString() + '만' } },
+            y1: { position: 'right', ticks: { color: '#d97706', callback: v => v + '%' }, grid: { drawOnChartArea: false } }
           }
+        },
+        plugins: [roasLabelPlugin]
+      });
+    }
+
+    // 2. Campaign Share Donut Chart
+    let ctypeRev = { '쇼핑검색': 0, '파워링크': 0, '신제품검색': 0 };
+    monthOnlyGroups.forEach(w => {
+      if (ctypeRev[w.CampaignType] !== undefined) ctypeRev[w.CampaignType] += w.Revenue || 0;
+    });
+
+    if (charts.share) charts.share.destroy();
+    const ctxShare = document.getElementById('chartCampaignShare');
+    if (ctxShare) {
+      charts.share = new Chart(ctxShare, {
+        type: 'doughnut',
+        data: {
+          labels: ['쇼핑검색', '파워링크', '신제품검색'],
+          datasets: [{
+            data: [ctypeRev['쇼핑검색'], ctypeRev['파워링크'], ctypeRev['신제품검색']],
+            backgroundColor: ['#059669', '#006633', '#d97706'],
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: '#111827' } } }
         }
       });
     }
 
-    // 2. Powerlink Weekly Chart
+    // 3. Powerlink Weekly Chart
     const plData = getWeeklyAgg(monthOnlyGroups.filter(g => g.CampaignType === '파워링크'));
     const plCtx = document.getElementById('chartPowerlinkWeekly');
     if (plCtx) {
@@ -1290,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 3. Shopping Weekly Chart
+    // 4. Shopping Weekly Chart
     const spData = getWeeklyAgg(monthOnlyGroups.filter(g => g.CampaignType === '쇼핑검색'));
     const spCtx = document.getElementById('chartShoppingWeekly');
     if (spCtx) {
@@ -1317,7 +1383,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 4. Newproduct Weekly Chart
+    // 5. Newproduct Weekly Chart
     const npData = getWeeklyAgg(monthOnlyGroups.filter(g => g.CampaignType === '신제품검색'));
     const npCtx = document.getElementById('chartNewproductWeekly');
     if (npCtx) {
