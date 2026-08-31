@@ -433,12 +433,12 @@ public class FastAggregator {
 
 Add-Type -TypeDefinition $code -ReferencedAssemblies "System.IO.Compression", "System.IO.Compression.FileSystem", "System.Xml"
 
-$excelPath = Join-Path $PSScriptRoot "RAW2.xlsx"
+$excelPath = Join-Path $PSScriptRoot "RAW3.xlsx"
 $jsonPath = Join-Path $PSScriptRoot "dashboard_data.json"
 $jsPath = Join-Path $PSScriptRoot "dashboard_data.js"
 
-Write-Host "Running optimized fast generator for RAW2.xlsx..."
+Write-Host "Running optimized fast generator for RAW3.xlsx..."
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 [FastAggregator]::ProcessExcel($excelPath, $jsonPath, $jsPath)
 $sw.Stop()
-Write-Host "Finished processing RAW2.xlsx in $($sw.Elapsed.TotalSeconds) seconds!"
+Write-Host "Finished processing RAW3.xlsx in $($sw.Elapsed.TotalSeconds) seconds!"
